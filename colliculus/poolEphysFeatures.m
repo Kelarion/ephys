@@ -68,19 +68,20 @@ for k = 1:length(db)
 
         %% load neural data
         spks = loadNeuralData(ksDir,dataDir);
-
+        
+        isneu = ismember(spks.cids,unique(spks.clu(spks.isNeuron)));
         [~,max_site_temps] = max(max(abs(spks.tempsUnW),[],2),[],3); % not zero-indexed
         max_site = max_site_temps(spks.cluTemps(spks.cids+1)+1); % need to add 1 for indexing, both times
-        cluSites = max_site(spks.cgs ~= 3);
+        cluSites = max_site(isneu);
         
         cluDepth = clusterAverage(spks.clu(spks.isNeuron),spks.spikeDepths(spks.isNeuron));
         cluAmps = clusterAverage(spks.clu(spks.isNeuron),spks.spikeAmps(spks.isNeuron))*spks.gain;
         
         goodCluID = spks.cids(spks.cgs==2);
-        allCluID = spks.cids(spks.cgs ~= 0);
+        allCluID = spks.cids(isneu);
         
-        cluNspk = zeros(sum(spks.cgs ~= 0),1);
-        for iClu = 1:sum(spks.cgs ~= 0)
+        cluNspk = zeros(sum(isneu),1);
+        for iClu = 1:sum(isneu)
             cluNspk(iClu) = sum(spks.clu == allCluID(iClu));
         end
         
@@ -136,12 +137,12 @@ for k = 1:length(db)
         cluWF = spks.tempsUnW(spks.cluTemps(mesoCluID+1)+1,:,:);
         
         % add to structure
-        spks.mesoCluID = mesoCluID;
+        spks.mesoCluID = mesoCluID(:);
         spks.scTop = scTop;
         spks.scBottom = scBottom;
         % first column is cluster ID, second is dataset index, third is tag
         % to do: find a better way to index datasets!
-        whichCell = [whichCell; mesoCluID' ones(nMesoUnits,1)*k ones(nMesoUnits,1)*t];
+        whichCell = [whichCell; mesoCluID(:) ones(nMesoUnits,1)*k ones(nMesoUnits,1)*t];
         isGood = [isGood; ismember(mesoCluID,goodCluID)'];
         nSpks = [nSpks; cluNspk(mesoCells)];
         Amp = [Amp; cluAmps(mesoCells)];
