@@ -1,0 +1,64 @@
+function ctxChannel = wheresCortex(lfpName,algo,algoInfo)
+% thisChannel = wheresCortex(lfpName,noiseInds,algo[,algoInfo])
+% 
+% Finds the approximate border of cortex and SC based on the LFP. Assumes
+% this is a Neuropixels opt. 3 or 1 probe.
+%
+% Inputs: 
+%   - lfpName [char]: Full path to LFP *.bin file.
+%   - algo [char]: How to find the border. Either 'corrs' or 'snrf':   
+%       > 'corrs' computes the correlation matrix and looks for
+%       block-diagonal structure, assuming that the closest block to the
+%       surface corresponds to cortical channels. This is slow.
+%       > 'snrf' uses the mean response to visual noise, taking the most
+%       dorsal channel with a strong visual response as the surface of the
+%       SC. If you have the sparse noise info, this is much faster.
+%   -algoInfo: Depends on algo:
+%       > If 'corrs', specify when (seconds) to compute correlations 
+%       > If 'snrf', provide the path to 'sparse_noise_RFs.mat' file 
+%
+% Note: this is only guaranteed to work with the specific data organisation
+% used for my SC project in the cortex lab.
+
+maxTimeForCorr = 600; % seconds; keep it < ~10 minutes or the array gets too huge
+lfp_thresh = 1.2; % threshold on z-scored LFP response 
+dudChans = [37    76   113   152   189   228   265   304   341   380]; %internal refs
+q = 1:384;
+liveChans = q(~ismember(q,dudChans));
+
+lfpnamestruct = dir(lfpName);
+dataTypeNBytes = numel(typecast(cast(0, 'int16'), 'uint8')); % determine number of bytes per sample
+
+nSampLFP = lfpnamestruct.bytes/(385*dataTypeNBytes);
+lfpFs = 2500; % assumption for imec
+
+lfpFile = memmapfile(lfpName, 'Format', {'int16', [385 nSampLFP], 'x'});
+
+switch algo
+    case 'corrs'
+        t0 = round(algoInfo(1)*lfpFs);
+        t_max = algoInfo(1)+maxTimeForCorr;
+        tfin = (nSampLFP-1)/lfpFs;
+        whenCompute = t0:round(min([algoInfo(2) t_max tfin])*lfpFs);
+        
+        mySlice = double(lfpFile.Data.x(liveChans,whenCompute))'; % start at halfway
+        medianSubtractedLFP = mySlice - median(mySlice,2);
+        cormat = corrcoef(medianSubtractedLFP);
+        
+        rows = findDiagBlocks(cormat,3,'svd'); % finds row of the block diagonals
+        ctxChannel = max(rows);
+    case 'snrf' % best option if you can use it
+        tmp = load(algoInfo);
+        snrf = tmp.snrf;
+        timeCourse = snrf.lfp_timecourse;
+        tcChans = snrf.computed_channels;
+        [m, ind] = max(-timeCourse,[],2);
+        peakTime = ind(m == max(m));
+        depthResponse = zscore(timeCourse(:,peakTime));
+        respChan = tcChans(thresholdMinDur(-depthResponse,lfp_thresh,3));
+        ctxChannel = max(respChan) + 2;
+    otherwise
+        error('Please give a valid algorithm: either ''corrs'' or ''snrf''')
+end
+
+end
