@@ -1,12 +1,20 @@
 function Ax = scatmat(X,ptype,varargin)
 % Ax = scatmat(X,ptype[,Name,Value])
 %
-% X is [nObs,nVar]
-% ptype is either 'scatter' (default) or 'density'
-% specify axes labels as (Name,Value) pair
-% Ax is [nVar,nVar]
+% Scatter-plot matrix with histograms along the diagonal, with the option
+% to plot density rather than points, and specify axis labels.
+% 
+% Inputs: 
+%  - X is [nObs,nVar]
+% Options:
+%  - ptype is either 'scatter' (default) or 'density'
+%  - Specify axes labels as (X,__,'labels', {lab1,lab2,...})
+%  - (for density plot) Specify the number of bins as (X,__,'nbin',val)
+%  - (for scatter plot) Aditional arguments for the 'plotmatrix' function
+% Outputs:
+%  - Ax is [nVar,nVar]
 
-if nargin<2, ptype = 'scatter'; end
+if ~exist('ptype','var'), ptype = 'scatter'; end
 
 if ~isempty(varargin) % parse varargin
     nms = lower(varargin(1:2:end));
@@ -35,7 +43,7 @@ else
 end
 
 nVar = size(X,2);
-switch ptype % a bit more flexible than just using 'plotmatrix' function
+switch ptype % a bit more flexibility than the 'plotmatrix' function
     case 'scatter'
         if isempty(extraArgs)
             [~,Ax,~,H] = plotmatrix(X);
@@ -50,16 +58,24 @@ switch ptype % a bit more flexible than just using 'plotmatrix' function
         j = 1;
         for row = 1:nVar
             for col = 1:nVar
+                Ax(row,col) = subtightplot(nVar,nVar,j,[0.005 0.005]);
+                varXlim = [min(X(:,col)) max(X(:,col))];
+                varYlim = [min(X(:,row)) max(X(:,row))];
+                rowCntr = linspace(varXlim(1),varXlim(2),nbin);
+                colCntr = linspace(varYlim(1),varYlim(2),nbin);
                 if row == col
-                    Ax(row,col) = subplot(nVar,nVar,j);
-                    histogram(X(:,row),nbin,'edgealpha',0);
-                    theseXlims = xlim;
+                    d1 = mean(diff(rowCntr))/2;
+                    histogram(X(:,row),rowCntr-d1,'edgealpha',0);
+                    if row<nVar, Ax(row,col).XTick = []; end
+                    if col>1, Ax(row,col).YTick = []; end
+                    Ax(row,col).XLim = varXlim;
                 else
-                    Ax(row,col) = subplot(nVar,nVar,j);
-                    
-                    [n, c] = hist3(X(:,[col, row]),[nbin nbin]); % make selection of nbin smarter
+                    [n, c] = hist3(X(:,[col, row]),{rowCntr colCntr});
                     imagesc(c{1},flipud(c{2}(:)),flipud(n')); colormap gray;
                     set(Ax(row,col),'Ydir','normal')
+                    
+                    if row<nVar, Ax(row,col).XTick = []; end
+                    if col>1, Ax(row,col).YTick = []; end
                 end
                 j = j+1;
             end
@@ -69,7 +85,7 @@ switch ptype % a bit more flexible than just using 'plotmatrix' function
 end
 if ~isempty(labs) % label axes
     for v = 1:nVar
-        ylabel(Ax(v,1),labs{v})
+        ylabel(Ax(v,1),labs{v},'Rotation',60,'horizontalalignment','right')
         xlabel(Ax(nVar,v),labs{v})
     end
 end

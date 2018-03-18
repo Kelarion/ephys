@@ -1,6 +1,10 @@
 function [lf] = getLFP(raw, fs, filt_low)
+% lf = getLFP(raw, fs, filt_low)
+%
 % Takes a raw signal and gives back the LFP, which is just the signal
 % bandpass-filtered between 10 and 50 Hz. 
+%
+% supply filt_low if possible, speeds things up substantially
 
 raw = double(raw);
 

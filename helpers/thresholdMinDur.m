@@ -7,7 +7,9 @@ function events = thresholdMinDur(signal,thr,dur)
 signal = signal(:)';
 
 aboveThr = signal > thr; % when is it above threshold
-evs = conv(aboveThr,ones(dur,1),'same') == dur; % surely theres a better way to do this
+evs = conv(aboveThr,ones(dur,1),'same') == dur; % surely there's a better way to do this
 events = logical(conv(evs,ones(dur,1),'same')); % when the signal was > thr for the entire bin
+
+
 
 end

@@ -3,7 +3,7 @@ if ~exist('lief','var')
     dataFolder = 'C:\DATA\Spikes\Janelia\muad_dib\2140_wheel_6-19-17\';
     sp = loadJRCdir(dataFolder);
     dat = load_channel(sp.dtype,[dataFolder sp.dat_path],sp.n_channels_dat, ... 
-        sp.chanMap(sp.mainChannel(3)),1,sp.sample_rate*120);
+        sp.chanMap(sp.mainChannel(3)),1,sp.nSampDat);
     lief = getLFP(dat,sp.sample_rate);
 end
 slice = 1144900:1279900; % change this as you want

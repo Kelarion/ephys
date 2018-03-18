@@ -1,8 +1,8 @@
-function ctxChannel = wheresCortex(lfpName,algo,algoInfo)
-% thisChannel = wheresCortex(lfpName,noiseInds,algo[,algoInfo])
+function [scTop, scBottom] = wheresCortex(lfpName,algo,algoInfo)
+% [scTop, scBottom] = wheresCortex(lfpName,noiseInds,algo[,algoInfo])
 % 
 % Finds the approximate border of cortex and SC based on the LFP. Assumes
-% this is a Neuropixels opt. 3 or 1 probe.
+% this is a Neuropixels option 3 or 1 probe.
 %
 % Inputs: 
 %   - lfpName [char]: Full path to LFP *.bin file.
@@ -17,7 +17,7 @@ function ctxChannel = wheresCortex(lfpName,algo,algoInfo)
 %       > If 'corrs', specify when (seconds) to compute correlations 
 %       > If 'snrf', provide the path to 'sparse_noise_RFs.mat' file 
 %
-% Note: this is only guaranteed to work with the specific data organisation
+% Note: this is only guaranteed to work with the specific data pipeline
 % used for my SC project in the cortex lab.
 
 maxTimeForCorr = 600; % seconds; keep it < ~10 minutes or the array gets too huge
@@ -46,7 +46,7 @@ switch algo
         cormat = corrcoef(medianSubtractedLFP);
         
         rows = findDiagBlocks(cormat,3,'svd'); % finds row of the block diagonals
-        ctxChannel = max(rows);
+        scTop = max(rows);
     case 'snrf' % best option if you can use it
         tmp = load(algoInfo);
         snrf = tmp.snrf;
@@ -55,8 +55,9 @@ switch algo
         [m, ind] = max(-timeCourse,[],2);
         peakTime = ind(m == max(m));
         depthResponse = zscore(timeCourse(:,peakTime));
-        respChan = tcChans(thresholdMinDur(-depthResponse,lfp_thresh,3));
-        ctxChannel = max(respChan) + 2;
+        respChan = tcChans(thresholdMinDur(-depthResponse,lfp_thresh,2));
+        scTop = max(respChan);
+        scBottom = min(respChan);
     otherwise
         error('Please give a valid algorithm: either ''corrs'' or ''snrf''')
 end

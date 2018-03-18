@@ -13,8 +13,8 @@ function af = ACGfeatures(ACG,ACG_bins)
 %   > [p_max, f_max]: Power and frequency of strongest Fourier component
 
 nClu = size(ACG,1);
-usf_peak = 2;
-usf_rise = 5;
+upsample_peak = 2;
+upsample_risetime = 5;
 
 rfp = zeros(nClu,1); % refractoriness
 r_max = zeros(nClu,1); % maximum firing rate
@@ -54,26 +54,28 @@ for iClu = 1:nClu
     else
         r_max(iClu) = mean(acg(tpk-1:tpk+1));
     end
-    r_inf(iClu) = mean(acg_avg(50:end));
+    r_inf(iClu) = mean(acg_avg(end-50:end));
     r_mean(iClu) = mean(acg_avg);
     
     if r_max(iClu) > 1.8*r_inf(iClu)
-        tq = interp1(1:length(t),t,1:(1/usf_peak):th);
+        tq = interp1(1:length(t),t,1:(1/upsample_peak):th);
         d = find(tq == t(tpk));
         acg_interp = interp1(t,acg_avg,tq);
         [~,t1] = min(abs(acg_interp(1:d) - r_max(iClu)/2));
         [~,t2] = min(abs(acg_interp(d:end) - r_max(iClu)/2));
-        PW2(iClu) = (t2+d - t1)/(usf_peak*Fs);
+        PW2(iClu) = (t2+d - t1)/(upsample_peak*Fs);
         
         [~,t1] = min(abs(acg_interp(1:d) - 2*r_max(iClu)/3));
         [~,t2] = min(abs(acg_interp(d:end) - 2*r_max(iClu)/3));
-        PW3(iClu) = (t2+d - t1)/(usf_peak*Fs);
+        PW3(iClu) = (t2+d - t1)/(upsample_peak*Fs);
     end
     
-    tq = interp1(1:length(t),t,1:(1/usf_rise):tpk);
+    tq = interp1(1:length(t),t,1:(1/upsample_risetime):tpk);
     acg_interp = interp1(t,acg,tq);
     thm = find(acg_interp >= 0.85*r_max(iClu),1,'first');
-    rfp(iClu) = thm/(usf_rise*Fs);
+    rfp(iClu) = thm/(upsample_risetime*Fs);
+    
+    
 end
 
 af.t_ref = rfp;     af.t_mean = t_mean;

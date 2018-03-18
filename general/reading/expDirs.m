@@ -1,16 +1,19 @@
-function [ksFolders, dataDir, alnDir, blkDir, alfDir] = expDirs(mouse,date,thisTag,whichServer)
-% [ksFolders, dataDir, alnDir, blkDir, alfDir] = expDirs(mouse,date,thisTag,whichServer)
+function [dsetFolders, dataDir, alnDir, blkDir, alfDir] = expDirs(mouse,date,tag,whichServer)
+% [dsetFolders, dataDir, alnDir, blkDir, alfDir] = expDirs(mouse,date[,thisTag,whichServer])
 % 
-% allows for kilosort files to be located in a different place than data
+% returns the default folders and directories for different kinds of data
+
+if nargin<4, whichServer = 'main'; end
+if nargin<3, thisTag = ''; 
+else, thisTag = ['\ephys_' tag]; end
 
 p = dat.paths();
 
 expFolders = [mouse '\' date '\'];
-
-ksFolders = [expFolders '\ephys_' thisTag '\sorting\'];
+dsetFolders = [expFolders thisTag '\'];
 
 dataRoot = [p.([whichServer 'Repository']) '\'];
-dataDir = [dataRoot expFolders 'ephys_' thisTag '\'];
+dataDir = [dataRoot dsetFolders '\'];
 alnDir = [dataRoot expFolders 'alignments\'];
 
 if strcmp(whichServer,'old')

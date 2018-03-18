@@ -132,16 +132,10 @@ end
 
 %%
 figure;
-winsize = 5; % mins
-nwin = round(max(thesest)/(60*winsize));
-j = 1;
+nwin = round(max(thesest)/(60*20);
 for ii = 1:nwin
-    fin = find(thesest < thesest(j)+60*winsize,1,'last');
-    tic
-    [S, f, R] = mtspectrumpt(thesest(j:fin),params);
-    plot(f,S)
-    toc
-    pause
-end
+
+
+
 
 

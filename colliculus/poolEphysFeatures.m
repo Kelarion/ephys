@@ -13,10 +13,10 @@ clear db
 ephys_celltypes_db
 
 feats = struct;
-labs = {'TtP','FWHM','FW3M','Grad(0.06)','Grad(0.4)','Peak/Trough','I_cap', ...
+labs = {'TtP','FWHM','FW3M','Grad(0.06)','Grad(0.4)','Peak/Trough','Capacitative', ...
         'Refractory time','Mean lag','ACG Peakiness','Mean firing rate', ... 
         'ACG half-width','ACG 2/3-width', ...
-        'ISI CV','Mode ISI'};
+        'CV ISI','Mode ISI'};
 ephysFeats = [];    ACGfeats = [];      ISIfeats = [];
 ACG = [];           ACG_bins = [];      distISI = [];   
 nSpks = [];         Amp = [];           allWFs = [];
@@ -29,11 +29,13 @@ for k = 1:length(db)
             disp(['Now: ' db(k).mouse_name ' on ' db(k).date ', ephys_' thisTag])
         end
         % load everything for that probe
-        dsetFolders = [db(k).mouse_name '\' db(k).date '\'];
-        
-        [ksFolders, dataDir, alnDir, ~, alfDir] = ... 
+        [dsetFolders, dataDir, alnDir, ~, alfDir] = ... 
             expDirs(db(k).mouse_name,db(k).date,thisTag,db(k).dataServer);
-        ksDir = [db(k).ksRoot ksFolders];
+        if isempty('db(k).ksRoot')
+            ksDir = [db(k).ksRoot dsetFolders '\sorting\'];
+        else
+            ksDir = [dataDir '\sorting\'];
+        end
         
         saveFolder = [localRoot dsetFolders 'ephys_' thisTag '\'];
         if ~exist(saveFolder,'dir')
@@ -122,31 +124,32 @@ for k = 1:length(db)
         
         %% choose which cells to keep
         % we only want cells in the mid-brain, they're much more interesting anyway
-        mesoCells = cluDepth < scTop & cluDepth > scBottom;
-        mesoCells = mesoCells & cluNspk >= 800; % got to have spikes
+        mesoCells = cluDepth(:) < scTop & cluDepth(:) > scBottom;
+        mesoCells = mesoCells & cluNspk(:) >= 800; % got to have spikes
         
-        nMesoUnits = sum(mesoCells);
         mesoCluID = spks.cids(mesoCells);
-        mesoSites = cluSites(mesoCells);
-        nGoodMeso = sum(ismember(mesoCluID,goodCluID));
+        goodMeso = mesoCells & spks.cgs(:) == 2;
         
-        if verbose, disp(['  found ' num2str(nMesoUnits) ' cells in midbrain']); end
-        if verbose, disp(['  of which ' num2str(nGoodMeso) ' are ''good''']); end
+        if verbose, disp(['  found ' num2str(sum(mesoCells)) ' cells in midbrain']); end
+        if verbose, disp(['  of which ' num2str(sum(goodMeso)) ' are ''good''']); end
+        if ~any(goodMeso), continue; end
+        
+        nClu = sum(goodMeso);
+        goodMesoCIDs = spks.cids(goodMeso);
+        mesoSites = cluSites(goodMeso);
         
         % remember, both cluID and cluTemps are zero-indexed!!
-        cluWF = spks.tempsUnW(spks.cluTemps(mesoCluID+1)+1,:,:);
+        cluWF = spks.tempsUnW(spks.cluTemps(goodMesoCIDs+1)+1,:,:);
         
         % add to structure
-        spks.mesoCluID = mesoCluID(:);
+        spks.mesoCluID = goodMesoCIDs(:);
         spks.scTop = scTop;
         spks.scBottom = scBottom;
-        % first column is cluster ID, second is dataset index, third is tag
+        % first column is cluster ID, second is tag, third is db index
         % to do: find a better way to index datasets!
-        whichCell = [whichCell; mesoCluID(:) ones(nMesoUnits,1)*k ones(nMesoUnits,1)*t];
-        isGood = [isGood; ismember(mesoCluID,goodCluID)'];
-        nSpks = [nSpks; cluNspk(mesoCells)];
-        Amp = [Amp; cluAmps(mesoCells)];
-        allSpks(k+(t-1)) = spks;
+        whichCell = [whichCell; goodMesoCIDs(:) ones(nClu,1)*k ones(nClu,1)*t];
+        nSpks = [nSpks; cluNspk(goodMeso)];
+        Amp = [Amp; cluAmps(goodMeso)];
         
         %% get waveforms and features
         if verbose
@@ -165,8 +168,8 @@ for k = 1:length(db)
 %         gwfparams.nMaxCh = [1 1];
 %         gwfparams.maxSite = goodSites;
 
-        mainTemplates = zeros(nMesoUnits,size(cluWF,2));
-        for iCell = 1:nMesoUnits, iSite = mesoSites(iCell);
+        mainTemplates = zeros(nClu,size(cluWF,2));
+        for iCell = 1:nClu, iSite = mesoSites(iCell);
             mainTemplates(iCell,:) = cluWF(iCell,:,iSite);
         end
         allWFs = [allWFs; mainTemplates];
@@ -192,10 +195,10 @@ for k = 1:length(db)
         if verbose, disp('Computing autocorrelations ...'); end
         
         nbin = 2000*acg_time;
-        dsetACGs = zeros(nMesoUnits,nbin + 1);
-        dsetACGbins = zeros(nMesoUnits,nbin +1);
-        for iCell = 1:nMesoUnits
-            thesest = spks.st(spks.clu == mesoCluID(iCell));
+        dsetACGs = zeros(nClu,nbin + 1);
+        dsetACGbins = zeros(nClu,nbin +1);
+        for iCell = 1:nClu
+            thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
             [acg, bins] = CCG_mine(thesest,1,acg_binsize,nbin,1);
             bins = bins/1000;
             dsetACGs(iCell,:) = acg(bins>=0);
@@ -211,36 +214,33 @@ for k = 1:length(db)
         %% ISI distribution
         if verbose, disp('Getting ISI distributions ...'); end
         nbin = isi_time/isi_binsize;
-        pIsi = nan(nMesoUnits,nbin);
-        CVisi = zeros(nMesoUnits,1);
-        isiMax = zeros(nMesoUnits,1);
-        for iCell = 1:nMesoUnits
-            thesest = spks.st(spks.clu == mesoCluID(iCell));
+        pIsi = nan(nClu,nbin);
+        CVisi = zeros(nClu,1);
+        modeISI = zeros(nClu,1);
+        for iCell = 1:nClu
+            thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
             isi = diff(thesest);
             isiBin = 0:isi_binsize:isi_time;
             p = histcounts(isi,isiBin);
             pIsi(iCell,:) = p;
-            CVisi(iClu) = mean(isi)/var(isi);
+            CVisi(iCell) = std(isi)./mean(isi);
             [m,ind] = max(p);
-            isiMax(iClu) = isiBin(ind);
-%             p_decay = p(ind:end);
-%             t_tau = isiBin(find(p_decay<m*exp(-1),1,'first')) + isiBin(ind-1);
+            modeISI(iCell) = isiBin(ind);
+            
         end
         distISI = [distISI; pIsi];
         if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
-        ISIfeats = [ISIfeats; CVisi isiMax];
+        ISIfeats = [ISIfeats; CVisi modeISI];
 
     end
 end
 
 % package
-feats.features = [ephysFeats ACGfeats ISIfeats];       
-feats.featureLabels = labs;
+feats.features = [ephysFeats ACGfeats ISIfeats];    feats.labels = labs;
 feats.amplitude = Amp;          feats.nSpks = nSpks;
 feats.ACG = ACG;                feats.ACG_bins = ACG_bins;             
 feats.distISI = distISI;        feats.ISI_bins = isiBin(1:end-1);
-feats.spikeShapes = allWFs;     feats.sp = allSpks;
-feats.whichCell = whichCell;    feats.isGood = logical(isGood);
+feats.spikeShapes = allWFs;     feats.whichCell = whichCell;   
 feats.datasets = db;
 
 if ~exist([localRoot 'SC_celltypes\all_ephys_features.mat'],'file') || overwrite

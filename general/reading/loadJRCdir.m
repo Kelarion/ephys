@@ -56,7 +56,11 @@ tmp_cids = cell2mat(cids);
 tmp_amps = cell2mat(amps);
 [st, inds] = sort(tmp_spk);
 
+dataTypeNBytes = numel(typecast(cast(0, s.P.vcDataType), 'uint8'));
+nSampDat = neurf.bytes/(spks.n_channels_dat*dataTypeNBytes);
+
 spks.dtype          = s.P.vcDataType;
+spks.nSampDat       = nSampDat;
 spks.st             = st; % good old spike times 
 spks.clu            = tmp_cids(inds); % cluster ID for each spike
 spks.cids           = unique(tmp_cids); % all available cluster IDs

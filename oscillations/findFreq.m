@@ -9,7 +9,6 @@ function [rippleon, rippleoff] = findFreq(raw_channel, leaf, tfrq, thr, fb)
 % fb: variance of gabor wavelet envelope
 
 
-
 win = [-1 1]*tfrq;
 nsamp = 2*sp.sample_rate;
 [psi, x] = cmorwavf(win,win,nsamp,fb,1); % gabor wavelet

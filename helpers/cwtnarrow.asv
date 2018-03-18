@@ -1,5 +1,5 @@
-function [WT, F, T, COI] = cwtnarrow(X,Fs,freqs,varargin)
-% [WT, F, T, COI] = cwtnarrow(X,Fs,freqs[,Name,Value])
+function [WT, F, COI, newt] = cwtnarrow(X,Fs,freqs,varargin)
+% [WT, F, COI, t] = cwtnarrow(X,Fs,freqs[,Name,Value])
 % 
 % Computes the continuous wavelet transform, between a narrower band than
 % determined by the energy of the signal. Specifically, we downsample
@@ -8,19 +8,18 @@ function [WT, F, T, COI] = cwtnarrow(X,Fs,freqs,varargin)
 % the lowest frequency. See the 'cwt' function for more details.
 %
 % Inputs: 
-%  - X (1,nSamp):   The signal (narrow-band filter for best results)
-%  - Fs (1,1):      Sampling frequency (in Hz)
-%  - freqs (1,2):   Upper and lower bounds of frequency range
+%  - X [1,nSamp]:   The signal (narrow-band filter for best results)
+%  - Fs [1,1]:      Sampling frequency (in Hz)
+%  - freqs [1,2]:   Upper and lower bounds of frequency range
 %  - varargin:      All other desired inputs to the 'cwt' function are
 %   given as name-value pairs, e.g. ('waveform','amor') to use the Morlet 
 %   wavelet. Do NOT specify 'NumOctaves', since that's how this function 
 %   sets the lower frequency bound. Look up 'cwt' for default values.
 %
 % Outputs:
-%  - WT (nF,nT):    Coefficients of the continuous wavelet transform
-%  - F (nF,1):      Frequency of each row in WT
-%  - T (1,nT):      Time (in sec) of each column
-%  - COI (1,nT):    Indicates where to expect edge effects    
+%  - WT [nF,nT]:    Coefficients of the continuous wavelet transform
+%  - F [nF,1]:      Frequency of each row in WT
+%  - COI [1,nT]:    Indicates where to expect edge effects    
 
 if ~isempty(varargin) % parse varargin
     if mod(length(varargin),2) > 0
@@ -54,7 +53,7 @@ else
     Nv = 10;
     otherargs = {};
 end
-t = [1:length(X)]/Fs;
+t = 1:length(X);
 nyqFs = freqs(1)*2 + 10;
 dsFactor = round(Fs/nyqFs);
 newX = X(1:dsFactor:end);
@@ -64,7 +63,6 @@ a_max = nyqFs/(freqs(2)*2); % scale factor of the lowest-frequency wavelet
 No = round(log2(a_max) + (1/Nv)); % based on a_max = 2^(No - 1/Nv)
 
 [WT, F, COI] = cwt(newX,wavename,nyqFs,'NumOctaves',No,otherargs{:});
-T = newt;
 
 end
 

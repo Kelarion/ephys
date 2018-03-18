@@ -10,7 +10,7 @@ for k = 1:length(db)
     for t = 1:length(db(k).tags), thisTag = db(k).tags{t};
         clear snrf
         % load data
-        dsetFolders = [db(k).mouse_name '\' db(k).date '\' 'ephys_' thisTag '\'];
+        dsetFolders = [db(k).mouse_name '\' db(k).date '\'];
         [dataDir, alnDir, infoDir, alfDir] = ... 
             expDirs(db(k).mouse_name,db(k).date,thisTag,db(k).dataServer);
         if isempty('db(k).ksRoot')
@@ -19,7 +19,7 @@ for k = 1:length(db)
             ksDir = [dataDir '\sorting\'];
         end
         
-        saveFolder = [localRoot dsetFolders];
+        saveFolder = [localRoot dsetFolders 'ephys_' thisTag '\'];
         if exist([saveFolder 'sparse_noise_RFs.mat'],'file') && ~overwrite
             continue
         elseif verbose
