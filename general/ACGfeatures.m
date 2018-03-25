@@ -75,7 +75,6 @@ for iClu = 1:nClu
     thm = find(acg_interp >= 0.85*r_max(iClu),1,'first');
     rfp(iClu) = thm/(upsample_risetime*Fs);
     
-    
 end
 
 af.t_ref = rfp;     af.t_mean = t_mean;

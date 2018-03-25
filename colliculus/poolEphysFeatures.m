@@ -15,11 +15,11 @@ ephys_celltypes_db
 feats = struct;
 labs = {'TtP','FWHM','FW3M','Grad(0.06)','Grad(0.4)','Peak/Trough','Capacitative', ...
         'Refractory time','Mean lag','ACG Peakiness','Mean firing rate', ... 
-        'ACG half-width','ACG 2/3-width', ...
-        'CV ISI','Mode ISI'};
-ephysFeats = [];    ACGfeats = [];      ISIfeats = [];
-ACG = [];           ACG_bins = [];      distISI = [];   
-nSpks = [];         Amp = [];           allWFs = [];
+        'ACG half-width','ACG 2/3-width', 'CV ISI','Mode ISI', ...
+        'Visual Modulation'};
+ephysFeats = [];    ACGfeats = [];  ISIfeats = [];  visFeats = [];
+ACG = [];           ACG_bins = [];  distISI = [];   
+nSpks = [];         Amp = [];       allWFs = [];
 whichCell = [];     isGood = [];            
 
 %% 
@@ -37,17 +37,33 @@ for k = 1:length(db)
             ksDir = [dataDir '\sorting\'];
         end
         
-        saveFolder = [localRoot dsetFolders 'ephys_' thisTag '\'];
+        saveFolder = [localRoot dsetFolders '\'];
         if ~exist(saveFolder,'dir')
             mkdir(saveFolder)
         elseif exist([saveFolder 'spike_feats.mat'],'file') && ~overwrite
             continue
         end
-        if exist(alnDir,'dir') && isfield(db,'noiseExp')
-            aln = loadAlignments(alnDir,thisTag,db(k).tlExp,'noise',db(k).noiseExp);
+        
+        aln = loadAlignments(alnDir,thisTag,db(k).tlExp,'noise',db(k).noiseExp);
+        spks = loadNeuralData(ksDir,dataDir);
+        
+        isneu = ismember(spks.cids,unique(spks.clu(spks.isNeuron)));
+        [~,max_site_temps] = max(max(abs(spks.tempsUnW),[],2),[],3); % not zero-indexed
+        max_site = max_site_temps(spks.cluTemps(spks.cids+1)+1); % need to add 1 for indexing, both times
+        cluSites = max_site(isneu);
+        
+        cluDepth = clusterAverage(spks.clu(spks.isNeuron),spks.spikeDepths(spks.isNeuron));
+        cluAmps = clusterAverage(spks.clu(spks.isNeuron),spks.spikeAmps(spks.isNeuron))*spks.gain;
+        
+        goodCluID = spks.cids(spks.cgs==2);
+        allCluID = spks.cids(isneu);
+        
+        cluNspk = zeros(sum(isneu),1);
+        for iClu = 1:sum(isneu)
+            cluNspk(iClu) = sum(spks.clu == allCluID(iClu));
         end
+        
 %         % load timeline for optogenetics information
-%         tl = load([infoRoot expFolders num2str(db(k).tlExp) '\' tlInfo '_Timeline.mat']);
 %         lasChannel = tl.inputs(strcmp({tl.hw.inputs.name},'blueLEDmonitor')).arrayColumn;
 %         
 %         if db(k).laserExp % we want to exclude laser trials from ACG and CCG analysis
@@ -67,25 +83,6 @@ for k = 1:length(db)
 %         % TO DO: check for ectopic lasers (ones not given in the alignment info)
 %         [lmin, lmax] = range(tl.raqDAQData(lasIndex,lasChannel));
 %         lasThresh = diff([lmin lmax])/2;
-
-        %% load neural data
-        spks = loadNeuralData(ksDir,dataDir);
-        
-        isneu = ismember(spks.cids,unique(spks.clu(spks.isNeuron)));
-        [~,max_site_temps] = max(max(abs(spks.tempsUnW),[],2),[],3); % not zero-indexed
-        max_site = max_site_temps(spks.cluTemps(spks.cids+1)+1); % need to add 1 for indexing, both times
-        cluSites = max_site(isneu);
-        
-        cluDepth = clusterAverage(spks.clu(spks.isNeuron),spks.spikeDepths(spks.isNeuron));
-        cluAmps = clusterAverage(spks.clu(spks.isNeuron),spks.spikeAmps(spks.isNeuron))*spks.gain;
-        
-        goodCluID = spks.cids(spks.cgs==2);
-        allCluID = spks.cids(isneu);
-        
-        cluNspk = zeros(sum(isneu),1);
-        for iClu = 1:sum(isneu)
-            cluNspk(iClu) = sum(spks.clu == allCluID(iClu));
-        end
         
         %% load or approximate the dorsal surface of SC
         bfname =[alfDir thisTag '\borders_' thisTag '.tsv'];
@@ -100,15 +97,16 @@ for k = 1:length(db)
             scBottom = min(sclower);
         elseif exist(snname,'file')
             if verbose, disp('Estimating SC surface...'); end
-            ctxChan = wheresCortex([dataDir spks.lfp_path],'snrf',snname);
+            [ctxChan, pagchan] = wheresCortex([dataDir spks.lfp_path],'snrf',snname);
             if isempty(ctxChan)
                 t0 = aln.noise2tl(2) + aln.tl2ref(2) - aln.tag2ref(2);
-                if verbose, disp('No visual response, using LFP correlations...'); end
                 ctxChan = wheresCortex([dataDir spks.lfp_path],'corrs',[t0 t0+400]);
-                if verbose, disp(['   ... I think it''s at channel: ' num2str(ctxChan)]); end
+                scTop = spks.ycoords(ctxChan);
+                scBottom = 0;
+            else
+                scTop = spks.ycoords(ctxChan);
+                scBottom = spks.ycoords(pagchan)-1000;
             end
-            scTop = spks.ycoords(ctxChan);
-            scBottom = 0;
         elseif exist('aln','var')
             t0 = aln.noise2tl(2) + aln.tl2ref(2) - aln.tag2ref(2);
             if verbose, disp('Estimating SC surface through LFP correlations...'); end
@@ -218,7 +216,7 @@ for k = 1:length(db)
         CVisi = zeros(nClu,1);
         modeISI = zeros(nClu,1);
         for iCell = 1:nClu
-            thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
+            thesest = spks.st(spks.clu == goodMesoCIDs(iCell)); 
             isi = diff(thesest);
             isiBin = 0:isi_binsize:isi_time;
             p = histcounts(isi,isiBin);
@@ -231,16 +229,48 @@ for k = 1:length(db)
         distISI = [distISI; pIsi];
         if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
         ISIfeats = [ISIfeats; CVisi modeISI];
+        
+        %% Visual response
+        if exist(snname,'file')
+            load(snname)
+        else
+            visFeats = [visFeats; nan(nClu,1)];
+            continue
+        end
+        if verbose, disp('Getting visual modulation ...'); end
+        moddir = zeros(nClu,1);
+        for iCell = 1:nClu
+            dis = snrf.neur_ID == goodMesoCIDs(iCell);
+            [~, ind1] = max(max(abs(snrf.neur_rfmap{dis}),[],2));
+            [~, ind2] = max(max(abs(snrf.neur_rfmap{dis}),[],1));
+            moddir(iCell) = sign(snrf.neur_rfmap{dis}(ind1,ind2))*snrf.neur_rfstats(dis).peakZscore;
+        end 
+        visFeats = [visFeats moddir];
+        if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
+        
+%         %% Rhythmicity
+%         if verbose, disp('Computing power spectra ...'); end
+%         params.pad = 2;
+%         params.Fs = spks.sample_rate;
+%         params.fpass = [0.5 200];
+%         params.tapers = [4 7];
+%         for iCell = 1:nClu
+%             thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
+%             [S, F, R] = mtspectrumpt(thesest(1:500),params);
+%         
+%         end
+%         if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
 
     end
 end
 
 % package
-feats.features = [ephysFeats ACGfeats ISIfeats];    feats.labels = labs;
+feats.features = [ephysFeats ACGfeats ISIfeats visFeats];    
+feats.labels = labs;            feats.whichCell = whichCell;
 feats.amplitude = Amp;          feats.nSpks = nSpks;
 feats.ACG = ACG;                feats.ACG_bins = ACG_bins;             
 feats.distISI = distISI;        feats.ISI_bins = isiBin(1:end-1);
-feats.spikeShapes = allWFs;     feats.whichCell = whichCell;   
+feats.spikeShapes = allWFs; 
 feats.datasets = db;
 
 if ~exist([localRoot 'SC_celltypes\all_ephys_features.mat'],'file') || overwrite

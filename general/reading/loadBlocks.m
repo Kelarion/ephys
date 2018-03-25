@@ -1,5 +1,5 @@
 function blks = loadBlocks(blockDir,tlExp,varargin)
-% blks = loadBlocks(blockDir,tlInfo,tlExp[,'expName',expNum])
+% blks = loadBlocks(blockDir,tlExp[,'expName',expNum])
 %
 % output will contain timeline, as "blks.tl", and then the block structures
 % of all subsequent experiments listed.

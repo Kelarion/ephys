@@ -1,5 +1,5 @@
-function h = shadeEvents(ax,ev,t,varargin)
-% shadeEvents(ax,ev,t[,Name,Value])
+function h = shadeEvents(ev,t,ax,varargin)
+% shadeEvents(ev,t,ax[,Name,Value])
 %
 % Shade regions on an axis, 'ax', when an event is occurring. 
 %
@@ -8,10 +8,12 @@ function h = shadeEvents(ax,ev,t,varargin)
 %   - ev: either [Onset Offset] matrix or logical vector
 %   - t: if ev is logical, supply the corresponding time vector
 %        (otherwise supply empty array)
-% Plotting parameters can be supplied as well.
+% Extra arguments are passed into 'fill' function.
+
+if ~exist('ax','var') || isempty(ax), ax=gca; end
 
 if ~exist('varargin','var') || length(varargin) < 1
-    varargin = {[0.8 0.8 0.8], 'FaceAlpha',0.6,'linestyle','none'};
+    varargin = {[0.8 0.8 0.8], 'FaceAlpha',0.7,'linestyle','none'};
 end
 
 if (any(ev) > 1)

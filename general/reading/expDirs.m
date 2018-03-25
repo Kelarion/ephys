@@ -5,7 +5,7 @@ function [dsetFolders, dataDir, alnDir, blkDir, alfDir] = expDirs(mouse,date,tag
 
 if nargin<4, whichServer = 'main'; end
 if nargin<3, thisTag = ''; 
-else, thisTag = ['\ephys_' tag]; end
+else, thisTag = ['ephys_' tag]; end
 
 p = dat.paths();
 

@@ -4,9 +4,10 @@ n = 1;
 db(n).root          = 'C:\DATA\Spikes\Janelia\';
 db(n).name          = 'muad_dib';
 db(n).serial        = 'M385799';
-db(n).depth         = '2579';
+db(n).date          = '6-19-17';
+db(n).depth         = {'502','606','1243','2004','2140','2217','2411','2579'};
 db(n).side          = 'right';
-db(n).neuro_file = 'M385799_cb_right_DCN_putative_2579_opto_g0_t0.nidq.bin';
+% db(n).neuro_file = 'M385799_cb_right_DCN_putative_2579_opto_g0_t0.nidq.bin';
 n = n + 1;
 % 
 % db{n}.dir              = '\\dm11\hantmanlab\matteo\data\cerebellum_probes\muaddib\2411_wheel_6-19-17\';

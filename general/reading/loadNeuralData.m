@@ -4,7 +4,7 @@ function spks = loadNeuralData(ksDir,dataDir)
 % I think this loads basically the same information as loadAllKsDir, but on
 % a single-tag basis and somehow is a bit more flexible for my purposes.
 %
-% if dataFolder isn't provided, assumes is the parent directory of ksDir
+% if dataDir isn't provided, assumes is the parent directory of ksDir
 
 if nargin < 2
     parts = split(ksDir,filesep);

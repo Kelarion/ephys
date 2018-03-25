@@ -7,17 +7,20 @@ function spks = loadJRCdir(jrcDir,getInds)
 %
 % Note: setting 'getInds' to true assumes that 'ind.mat' already exists. 
 
-if nargin <2, getInds = 0; end
+if nargin <2, getInds = false; end
 mFiles = dir([jrcDir '*.meta']);
 neurf  = dir([jrcDir '*.bin']);
 if length(mFiles) == 1
     metafile = mFiles(1).name; 
     neurofile = neurf(1).name;
+    spks.dat_path = neurofile;
 elseif contains(mFiles(1).name,'imec')
     metafile = mFiles(contains({mFiles.name},'ap')).name; 
     neurofile = neurf(contains({neurf.name},'ap')).name;
+    spks.dat_path = neurofile;
+    spks.lfp_path = neurf(contains({neurf.name},'lf')).name;
+    neurf = neurf(contains({neurf.name},'ap'));
 end 
-spks.dat_path = neurofile;
 meta_text = fileread([jrcDir metafile]);
 
 [~, ind_nchan] = regexp(meta_text,'nSavedChans=\d');
@@ -45,7 +48,7 @@ t_spk = cell(nClu,1);   notes = cell(nClu,1);
 amps = cell(nClu,1);    cids = cell(nClu,1);
 for j = 1:nClu % load all info
     cluInds = s.S_clu.cviSpk_clu{j}; % indices of cluster j
-    t_spk{j} = double(s.viTime_spk(cluInds))*1000/fs_neuro;
+    t_spk{j} = double(s.viTime_spk(cluInds))/fs_neuro;
     notes{j} = s.S_clu.csNote_clu{j};
     thisCID = mode(s.S_clu.viClu(cluInds));
     cids{j} = ones(s.S_clu.vnSpk_clu(j),1)*double(thisCID);

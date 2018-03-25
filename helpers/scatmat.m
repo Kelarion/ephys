@@ -2,11 +2,11 @@ function Ax = scatmat(X,ptype,varargin)
 % Ax = scatmat(X,ptype[,Name,Value])
 %
 % Scatter-plot matrix with histograms along the diagonal, with the option
-% to plot density rather than points, and specify axis labels.
+% to plot density rather than points and specify axis labels.
 % 
 % Inputs: 
 %  - X is [nObs,nVar]
-% Options:
+% Optional:
 %  - ptype is either 'scatter' (default) or 'density'
 %  - Specify axes labels as (X,__,'labels', {lab1,lab2,...})
 %  - (for density plot) Specify the number of bins as (X,__,'nbin',val)

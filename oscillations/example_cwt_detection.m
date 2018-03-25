@@ -1,27 +1,27 @@
+%% set filter
+c = firpmord([15 20 40 45], [0 1 0], [0.01 0.001 0.01], 25000, 'cell');
+if mod(c{1},2) == 1, c{1} = c{1} + 1; end
+filt_low = firpm(c{:});
+
 %% load the data and LFP
-if ~exist('lief','var')
-    dataFolder = 'C:\DATA\Spikes\Janelia\muad_dib\2140_wheel_6-19-17\';
-    sp = loadJRCdir(dataFolder);
-    dat = load_channel(sp.dtype,[dataFolder sp.dat_path],sp.n_channels_dat, ... 
-        sp.chanMap(sp.mainChannel(3)),1,sp.nSampDat);
-    lief = getLFP(dat,sp.sample_rate);
-end
+dataFolder = 'C:\DATA\Spikes\Janelia\muad_dib\2217_wheel_6-19-17\';
+sp = loadJRCdir(dataFolder);
+dat = load_channel(sp.dtype,[dataFolder sp.dat_path],sp.n_channels_dat, ...
+    sp.chanMap(sp.mainChannel(3)),1,sp.nSampDat);
+lief = getLFP(dat,sp.sample_rate,filt_low);
 
 [WT, F, newt, COI] = cwtnarrow(lief,sp.sample_rate,[50 15],'voicesperoctave',20);
 F = F(:);
  
 tdat = [1:length(dat)]/sp.sample_rate;
 
-%% plot
-magthresh = 150; % threshold on the magnitude
-freqthresh = 2; % minimum number of frequency bands
-isev = sum(abs(WT)>=magthresh,1)>=freqthresh;
-timbs = findRipples(WT,F,T);
+%% plotdat 
+timbs = findRipples(WT,F,newt);
 
 figure('units','normalized','position',[0.0406 0.3269 0.9406 0.5778]);
 ax(1) = subtightplot(2,1,1,[0.005,0.01]);
 ax(1).YLim = [min(dat) max(dat)];
-shadeEvents(ax(1),timbs')
+shadeEvents(timbs',[],ax(1))
 hold on
 plot(ax(1),tdat(1:2:end),dat(1:2:end))
 hold off
@@ -42,17 +42,3 @@ ax(1).XLim = [min(tdat) max(tdat)];
 ax(2).XLim = [min(tdat) max(tdat)];
 % ax(3).XLim = [min(tdat) max(tdat)];
 linkaxes(ax,'x');
-
-%%
-
-width = zeros(size(evOn));
-for ii = 1:nEvs
-    thisEv = mag(:,evOn(ii):evOff(ii));
-    [~,indf] = max(max(thisEv,[],2)); % which frequency was the peak
-    [~,indt] = max(max(thisEv,[],1));
-    m = max(thisEv(:,indt));
-    [~,i1]  = min(abs(thisEv(1:indf,indt)-(m/2)));
-    [~,i2]  = min(abs(thisEv(indf:end,indt)-(m/2)));
-    i2 = i2+indf;
-    width(ii) = i2 - i1;
-end

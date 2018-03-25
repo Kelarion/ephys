@@ -1,5 +1,6 @@
 function beh = loadALF(alfDir,varargin)
 % beh = loadALF(alfDir[,extraFields])
+%
 % default fields are:
 % {'cwFeedback' 'cwGoCue' 'cwResponse' ... 
 % 'cwStimOn' 'cwTrials' 'licks' 'passiveBeep' 'passiveStimOn'  ... 

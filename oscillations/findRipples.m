@@ -1,5 +1,5 @@
 function [evTimes,peakFreq,peakPower] = findRipples(WT,F,T,params)
-% [evTime,peakFreq] = findRipples(WT,F,T[,params])
+% [evTime,peakFreq,peakPower] = findRipples(WT,F,T[,params])
 %
 % WT (nF,nT) is wavelet transform, or transform magnitude 
 % F and T are the frequency and time labels
@@ -30,7 +30,7 @@ Fs = 1/dt;
 
 minSampBetween = ceil(minBetween*Fs);
 
-mag = abs(WT);
+mag = abs(WT);%/max(max(abs(WT)));
 
 isev = sum(mag>=magThr,1)>=2;
 evOn = find(diff([0 isev]) > 0);
@@ -47,7 +47,7 @@ for iEv = 1:nEvs % go through each event and make sure it passes all criteria
     [m,indf] = max(max(thisEv,[],2));
     [~,indt] = max(max(thisEv,[],1)); 
     
-    if (fspread(thisEv(:,indt)) > noiseThr) % artifacts are very wide in frequency domain
+    if (fspread(thisEv(:,indt)) > noiseThr) % artifacts are wider in frequency domain
         evOn(iEv) = nan; evOff(iEv) = nan;
         continue
     end
@@ -57,6 +57,8 @@ for iEv = 1:nEvs % go through each event and make sure it passes all criteria
         [~,i2] = max(mean(mag(:,evOn(iEv+1):evOff(iEv+1)),2));
         if (abs(F(i2)-fmax) <= 5) && (diff(evOn(iEv:iEv+1)) <= minSampBetween)
             evOff(iEv) = nan; evOn(iEv+1) = nan;
+            peakFreq(iEv) = fmax;
+            peakPower(iEv) = m;
             continue % the next event will be skipped
         end
     end
@@ -72,6 +74,7 @@ for iEv = 1:nEvs % go through each event and make sure it passes all criteria
 end
 
 evTimes = [evOn(~isnan(evOn)); evOff(~isnan(evOff))]./Fs;
+evTimes = evTimes';
 peakFreq = peakFreq(~isnan(peakFreq));
 peakPower = peakPower(~isnan(peakPower));
 
@@ -80,7 +83,7 @@ end
 
 %% ---------------------------------------------------------------------
 function width = fspread(x)
-% width = fspread(x,f)
+% width = fspread(x)
 % Spread of x in terms of frequency
 
 [m,ind] = max(x);

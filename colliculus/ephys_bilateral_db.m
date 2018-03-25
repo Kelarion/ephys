@@ -9,6 +9,7 @@ db(n).cwExp         = 3;
 db(n).noiseExp      = 4;
 db(n).passiveExp    = 5;
 db(n).tags          = {'ZO' 'K2'};
+% db(n).tagLocation   = {'' ''}; % either LA, LP, RA or RP 
 
 n = n+1;
 db(n).mouse_name    = 'SS087';

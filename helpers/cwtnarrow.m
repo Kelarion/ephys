@@ -11,7 +11,7 @@ function [WT, F, T, COI] = cwtnarrow(X,Fs,freqs,varargin)
 %  - X (1,nSamp):   The signal (narrow-band filter for best results)
 %  - Fs (1,1):      Sampling frequency (in Hz)
 %  - freqs (1,2):   Upper and lower bounds of frequency range
-%  - varargin:      All other desired inputs to the 'cwt' function are
+%  - Optional:      All other desired inputs to the 'cwt' function are
 %   given as name-value pairs, e.g. ('waveform','amor') to use the Morlet 
 %   wavelet. Do NOT specify 'NumOctaves', since that's how this function 
 %   sets the lower frequency bound. Look up 'cwt' for default values.
