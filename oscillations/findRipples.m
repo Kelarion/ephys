@@ -82,7 +82,7 @@ end
 
 
 %% ---------------------------------------------------------------------
-function width = fspread(x)
+function [width cntr] = fspread(x)
 % width = fspread(x)
 % Spread of x in terms of frequency
 
@@ -93,6 +93,7 @@ function width = fspread(x)
 i2 = i2+ind;
 
 width = i2 - i1;
+cntr = x(round((i1+i2)/2));
 
 end
 

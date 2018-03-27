@@ -111,7 +111,7 @@ for k = 1:length(db)
                     myst(iClu) = (size(stim(couldveFound,:),1)-size(timbs,1));
                 end
                 
-                % find which were induced by laser --
+                % find which were induced by laser:
                 % consider events which overlap with stimulation as induced
                 overlap = timbs(inds,1)<stim(detStims,2) | timbs(inds,2)>stim(detStims,1);
                 isStim = ismember(1:size(timbs,1),inds(overlap));
@@ -149,7 +149,8 @@ end
 
 R.spkPhase = spkPhase;  R.whichCell = whichCell;
 R.freq = evFreq;        R.interval = evTime;
-R.isOpto = isOpto;      R.optoFreq = stimFreq;                    
+R.isOpto = isOpto;      R.optoFreq = stimFreq;  
+R.datasets = db;
 
 if verbose
     disp('done with everything');
@@ -157,9 +158,4 @@ if verbose
     disp([' with a mean error of ' num2str(mean(meanErr)) ' seconds for those we got']);
     disp('congratulations');
 end
-
-wc2id = @(WC,b) WC*[b^2 b^1 b^0]';
-id2wc = @(id,b) [floor(id/(b^2)) mod(floor(id/b),b) mod(id,b)];
-
-
 

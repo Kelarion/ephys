@@ -1,0 +1,11 @@
+%% load 
+load('C:\Users\Matteo\Documents\UNI\University of College\Ken class\allrips.mat')
+
+% to convert from the 3-number identification (which correspond to cell ID,
+% tag, and dataset) to a single unique cell ID, I treat each number as the
+% value of a digit in a base-b number, and convert it to base-10. A base of
+% 5 seems arbitrary, but using it as a base makes the conversion completely
+% invertible for this sort of data (i.
+wc2id = @(WC,b) WC*[b^2 b^1 b^0]';
+id2wc = @(id,b) [floor(id/(b^2)) mod(floor(id/b),b) mod(id,b)];
+
