@@ -1,7 +1,8 @@
 function [WT, F, T, COI] = cwtnarrow(X,Fs,freqs,varargin)
 % [WT, F, T, COI] = cwtnarrow(X,Fs,freqs[,Name,Value])
 % 
-% Computes the continuous wavelet transform, between a narrower band than
+% Wrapper for 'cwt' function.
+% Computes the continuous wavelet transform in a narrower band than
 % determined by the energy of the signal. Specifically, we downsample
 % the signal to twice the highest frequency in freqs, setting the upper 
 % bound on the cwt, and then choose the range of wavelet scales based on 
@@ -28,7 +29,7 @@ if ~isempty(varargin) % parse varargin
     end
     nms = varargin(1:2:end); % names 
     rgs = varargin(2:2:end); % args
-    include = false(length(varargin),1);
+    include = false(length(varargin)/2,1);
     if any(contains(lower(nms),'wavename'))
         wavename = rgs{contains(lower(nms),'wavename')};
         include = include | contains(lower(nms),'wavename');
@@ -37,7 +38,6 @@ if ~isempty(varargin) % parse varargin
     end
     if any(contains(lower(nms),'voicesperoctave'))
         Nv = rgs{contains(lower(nms),'voicesperoctave')};
-        include = include | contains(lower(nms),'voicesperoctave');
     else
         Nv = 10; % cwt default
     end

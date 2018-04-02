@@ -1,11 +1,13 @@
+% set parameters
 ksRoot = 'C:\DATA\Spikes\Janelia\';
 
 verbose = 1;
 
-params.pThresh = 150; % arbitrary units
+params.pThresh = 170; % arbitrary magnitude units
 params.tThresh = 4; % periods
 params.minBetween = 0.5; % seconds
-params.noiseCutoff = 10; % number of frequency bands
+params.noiseCutoff = 18; % Hz
+nvox = 20;
 
 clear db;
 wheel_db
@@ -16,21 +18,27 @@ if ~exist('filt_low','var') % takes a long time to make this filter
     filt_low = firpm(c{:}); 
 end % but it seems to give the best performance for such a narrow bandwidth
 
-%% 
+%% run
 R = struct;
 whichCell = [];
+whichEvent = [];
 spkPhase = [];
 isOpto = [];
 evFreq = [];
 evTime = [];
+evMag = [];
 stimFreq = [];
+allEvTimes = [];
+allEvFreqs = [];
+allOptoFreq = [];
+evChannel = [];
 nMiss = 0;
 meanErr = nan(length([db.depth]),1);
 j = 1;
 tic
 for k = 1:length(db)
     for d = 1:length(db(k).depth)
-        %%
+        %% load
         parentDir = [ksRoot '\' db(k).name '\'];
         subDir = dir([parentDir '*' db(k).date]);
         
@@ -42,7 +50,7 @@ for k = 1:length(db)
             subDir = subDir(contains({subDir(:).name},db(k).depth{d}));
             if isempty(subDir)
                 disp('can''t find it ¯\_(?)_/¯')
-%                 continue
+                continue
             end
         end
         dataDir = [parentDir subDir.name '\'];
@@ -50,7 +58,7 @@ for k = 1:length(db)
         sp = loadJRCdir(dataDir);
         rawDat = memmapfile([dataDir sp.dat_path], 'Format',  ...
             {sp.dtype, [sp.n_channels_dat sp.nSampDat], 'x'});
-        %%
+        %% 
         if db(k).hasOpto(d)
             if db(k).badAux
                 opto = cleanAux(rawDat.Data.x(66,:)); % get laser times
@@ -86,7 +94,7 @@ for k = 1:length(db)
 
         tdat = [1:size(rawDat.Data.x,2)]/sp.sample_rate;
         
-        if verbose, disp(['Finding ripples for ' num2str(nCells) ' channels ...']); end
+        if verbose, disp(['Finding events for ' num2str(nCells) ' channels ...']); end
         CIDs = [];
         myst = nan(1,nCells); % how many known events (opto-induced) were missed
         errs = nan(1,nCells); % mean time not detected by the algorithm
@@ -95,9 +103,10 @@ for k = 1:length(db)
             lief = getLFP(rawDat.Data.x(chan,:),sp.sample_rate,filt_low);
             phas = angle(hilbert(lief));
             
-            [WT, F, newt, COI] = cwtnarrow(lief,sp.sample_rate,[50 15],'voicesperoctave',20);
+            [WT, F, newt, COI] = cwtnarrow(lief,sp.sample_rate,[50 15],'voicesperoctave',nvox);
             F = F(:);
-            [timbs,freqs] = findRipples(WT,F,newt,params);
+            [timbs,freqs,pkmag] = findRipples(WT,F,newt,params);
+            if isempty(timbs), continue; end
             
             if db(k).hasOpto(d)
                 if size(timbs,1) > size(stim,1)
@@ -127,34 +136,52 @@ for k = 1:length(db)
                 myst(iClu) = 0;
                 errs(iClu) = 0;
             end
+            evInds = [1:size(timbs,1)]';
             
             stInds = round(sp.st(sp.clu == goodCids(iClu))*sp.sample_rate);
             wr = WithinRanges(sp.st(sp.clu == goodCids(iClu)),timbs,1:size(timbs,1),'vector');
             p = phas(stInds(logical(wr))); % get the phase of each spike relative to the events
             
+            allEvTimes = [allEvTimes; timbs];
+            allEvFreqs = [allEvFreqs; freqs];
+            evChannel = [evChannel; chan*ones(size(timbs,1),1)];
+            
             spkPhase = [spkPhase; p(:)];
             isOpto = [isOpto; isStim(wr(wr>0),:)];
             evFreq = [evFreq; freqs(wr(wr>0),:)];
             evTime = [evTime; timbs(wr(wr>0),:)];
+            evMag = [evMag; pkmag(wr(wr>0),:)];
             stimFreq = [stimFreq; sfreq(wr(wr>0),:)];
+            allOptoFreq = [allOptoFreq; sfreq(:)];
             CIDs = [CIDs; goodCids(iClu)*ones(length(p),1)];
+            whichEvent = [whichEvent; evInds(wr(wr>0),:)];
         end
         if verbose, disp(['     done in ' num2str(toc) ' seconds']); end
         whichCell = [whichCell; CIDs d*ones(length(CIDs),1) k*ones(length(CIDs),1)];
-        nMiss = nMiss + sum(myst);
-        meanErr(j) = mean(errs);
+        nMiss = nMiss + nansum(myst);
+        meanErr(j) = nanmean(errs);
         j = j+1;
     end
 end
 
-R.spkPhase = spkPhase;  R.whichCell = whichCell;
-R.freq = evFreq;        R.interval = evTime;
-R.isOpto = isOpto;      R.optoFreq = stimFreq;  
-R.datasets = db;
+R.osc.Times = allEvTimes;
+R.osc.Freq = allEvFreqs;
+R.osc.optoFreq = allOptoFreq;
+R.osc.Chan = evChannel;  
+
+R.whichEvent = whichEvent;
+R.spkPhase = spkPhase;  
+R.magnitude = evMag;
+R.freq = evFreq;        
+R.interval = evTime;
+R.isOpto = logical(isOpto);      
+R.optoFreq = stimFreq;  
+R.datasets = db;        
+R.whichCell = whichCell;
 
 if verbose
     disp('done with everything');
-    disp(['We missed ' num2str(nMiss) ' known events across all datasets']);
+    disp(['We missed ' num2str(nMiss) ' probable events across all datasets']);
     disp([' with a mean error of ' num2str(mean(meanErr)) ' seconds for those we got']);
     disp('congratulations');
 end

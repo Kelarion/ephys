@@ -6,11 +6,11 @@ function [evTimes,peakFreq,peakPower] = findRipples(WT,F,T,params)
 % 
 % params has 4 accepted fields:
 % - pThresh is threshold on magnitude, i.e. |WT|^2 (default 150)
-% - tThresh is minimum event duration, in periods (default 3)
+% - tThresh is minimum event duration in periods (default 3)
 % - minBetween is minimum distance for two events to be considered different,
 %   in the same units as T (default 0.05 seconds)
 % - noiseCutoff is the minimum spread in frequency domain for an event to
-%   be considered noise, in number of voices (default 10)
+%   be considered noise, in Hz (default 18)
 %
 % see 'cwt' or 'cwtnarrow', which generate the first three inputs
 
@@ -18,7 +18,7 @@ if nargin < 4, params = struct; end
 if ~isfield(params,'pThresh'), params.pThresh = 150; end
 if ~isfield(params,'tThresh'), params.tThresh = 3; end
 if ~isfield(params,'minBetween'), params.minBetween = 0.05; end % assume seconds
-if ~isfield(params,'noiseCutoff'), params.noiseCutoff = 10; end
+if ~isfield(params,'noiseCutoff'), params.noiseCutoff = 18; end
 
 magThr = params.pThresh;
 minDur = params.tThresh;
@@ -44,14 +44,15 @@ for iEv = 1:nEvs % go through each event and make sure it passes all criteria
         continue
     end
     thisEv = mag(:,evOn(iEv):evOff(iEv));
-    [m,indf] = max(max(thisEv,[],2));
+    m = max(max(thisEv,[],2));
     [~,indt] = max(max(thisEv,[],1)); 
-    
-    if (fspread(thisEv(:,indt)) > noiseThr) % artifacts are wider in frequency domain
+
+    if (fspread(thisEv(:,indt),F) > noiseThr) % artifacts are wider in frequency domain
         evOn(iEv) = nan; evOff(iEv) = nan;
         continue
     end
     
+    [~,indf] = max(mean(thisEv,2));
     fmax = F(indf); % if two events of the same frequency are too close together
     if iEv < nEvs  % then we consider them the same event
         [~,i2] = max(mean(mag(:,evOn(iEv+1):evOff(iEv+1)),2));
@@ -82,8 +83,8 @@ end
 
 
 %% ---------------------------------------------------------------------
-function [width cntr] = fspread(x)
-% width = fspread(x)
+function width = fspread(x,f)
+% width = fspread(x,f)
 % Spread of x in terms of frequency
 
 [m,ind] = max(x);
@@ -92,8 +93,6 @@ function [width cntr] = fspread(x)
 [~,i2]  = min(abs(x(ind:end)-(m/2)));
 i2 = i2+ind;
 
-width = i2 - i1;
-cntr = x(round((i1+i2)/2));
+width = f(i1) - f(i2);
 
 end
-
