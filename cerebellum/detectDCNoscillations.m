@@ -7,7 +7,7 @@ params.pThresh = 170; % arbitrary magnitude units
 params.tThresh = 4; % periods
 params.minBetween = 0.5; % seconds
 params.noiseCutoff = 18; % Hz
-nvox = 20;
+nvox = 20; % number of voices
 
 clear db;
 wheel_db
