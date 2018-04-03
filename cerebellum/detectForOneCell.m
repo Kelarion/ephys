@@ -12,8 +12,8 @@ if ~exist('filt_low','var') % takes a long time to make this filter
     filt_low = firpm(c{:}); 
 end % but it seems to give the best performance for such a narrow bandwidth
 
-cid = 4;
-d = 3;
+cid = 1;
+d = 2;
 k = 3;
 %% load
 parentDir = [ksRoot '\' db(k).name '\'];

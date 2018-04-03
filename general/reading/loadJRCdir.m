@@ -62,6 +62,12 @@ tmp_amps = cell2mat(amps);
 dataTypeNBytes = numel(typecast(cast(0, s.P.vcDataType), 'uint8'));
 nSampDat = neurf.bytes/(spks.n_channels_dat*dataTypeNBytes);
 
+if exist([jrcDir '\clustered\t_frame.mat'],'file')
+    vidya = load([jrcDir '\clustered\t_frame.mat']);
+else
+    vidya = [];
+end
+
 spks.dtype          = s.P.vcDataType;
 spks.nSampDat       = nSampDat;
 spks.st             = st; % good old spike times 
@@ -76,5 +82,7 @@ spks.meanWF         = s.S_clu.tmrWav_raw_clu;
 spks.chanMap        = s.P.viSite2Chan; % map from 'site' to row of raw data array
 spks.xcoords        = s.P.mrSiteXY(:,1); % x and 
 spks.ycoords        = s.P.mrSiteXY(:,2); % y position of those sites
-
+if ~isempty(vidya)
+    spks.frameTimes = vidya.t_frame;
+end
 

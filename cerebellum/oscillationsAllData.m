@@ -77,3 +77,75 @@ c.Label.String = 'mean spontaneous frequency (Hz)';
 
 
 
+%% videos
+d = 2;
+k = 1;
+deez = ~R.isOpto & R.whichCell(:,2) == d & R.whichCell(:,3) == k;
+cams = 0;
+
+parentDir = [ksRoot '\' db(k).name '\'];
+subDir = dir([parentDir '*' db(k).date]);
+
+if length(subDir) > 1
+    subDir = subDir(contains({subDir(:).name},db(k).depth{d}));
+    if isempty(subDir)
+        disp('can''t find it ¯\_(?)_/¯')
+    end
+end
+dataDir = [parentDir subDir.name '\'];
+
+sp = loadJRCdir(dataDir,true);
+ft = sp.frameTimes/1000;
+offset = ft(1);
+
+et = unique(R.interval(deez,:),'rows');
+tooSoon = find(diff([0;et(:,1)]) < 0.1);
+while ~isempty(tooSoon) % events occuring too soon after the last
+    et(tooSoon-1,:) = (et(tooSoon-1,:) + et(tooSoon,:))/2;
+    et(tooSoon,:) = [];  % merge with adjacent events
+    tooSoon = find(diff([0;et(:,1)]) < 0.01);
+end
+
+iCam = cams(1);
+whichCam = sprintf('bias_video_cam_%d_',iCam);
+vidDir = dir([dataDir whichCam '*.avi']); % get the video file
+vidPlace = [vidDir.folder '\' vidDir.name];
+
+vidObj = VideoReader(vidPlace);
+
+%% play
+win = [-0.5 0.5];
+
+v = VideoWriter('test.avi');
+v.FrameRate = vidObj.FrameRate/5;
+open(v)
+tic
+for iEv = 1:size(et,1)
+    t_start = et(iEv,1)-offset;
+    t_fin = et(iEv,2)-offset;
+    if t_start<0, continue;end
+    vidObj.CurrentTime = rectify(t_start+win(1));
+
+    figure('visible','off'); % 'units','normalized','position',[0.1240 0.2889 0.6995 0.5250],
+    while vidObj.CurrentTime < t_fin+win(2)
+        vidFrame = readFrame(vidObj);
+        image(vidFrame);
+        hold on
+        text(vidObj.width,vidObj.height,num2str(vidObj.CurrentTime),...
+            'color','yellow','horizontalalignment','right', ...
+            'verticalalignment','bottom','fontsize',15)
+        text(0,0,['Event #: ' num2str(iEv)],'color','yellow',...
+            'horizontalalignment','left','verticalalignment','top',...
+            'fontsize',13)
+        if (vidObj.CurrentTime > t_start) && (vidObj.CurrentTime < t_fin)
+            scatter(400,50,800,'y','filled')
+        end
+        hold off
+        set(gca,'Visible','off');
+        frem = getframe(gca);
+        writeVideo(v,frem);
+        %     pause(1/vidObj.FrameRate);
+    end
+end
+close(v)
+toc
