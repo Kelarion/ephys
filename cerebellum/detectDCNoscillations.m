@@ -3,7 +3,7 @@ ksRoot = 'C:\DATA\Spikes\Janelia\';
 
 verbose = 1;
 
-params.pThresh = 170; % arbitrary magnitude units
+params.pThresh = 150; % arbitrary magnitude units
 params.tThresh = 4; % periods
 params.minBetween = 0.5; % seconds
 params.noiseCutoff = 18; % Hz
@@ -50,7 +50,7 @@ for k = 1:length(db)
             subDir = subDir(contains({subDir(:).name},db(k).depth{d}));
             if isempty(subDir)
                 disp('can''t find it ¯\_(?)_/¯')
-                continue
+%                 continue
             end
         end
         dataDir = [parentDir subDir.name '\'];
@@ -58,7 +58,7 @@ for k = 1:length(db)
         sp = loadJRCdir(dataDir);
         rawDat = memmapfile([dataDir sp.dat_path], 'Format',  ...
             {sp.dtype, [sp.n_channels_dat sp.nSampDat], 'x'});
-        %% 
+        %% detect
         if db(k).hasOpto(d)
             if db(k).badAux
                 opto = cleanAux(rawDat.Data.x(66,:)); % get laser times
@@ -106,7 +106,7 @@ for k = 1:length(db)
             [WT, F, newt, COI] = cwtnarrow(lief,sp.sample_rate,[50 15],'voicesperoctave',nvox);
             F = F(:);
             [timbs,freqs,pkmag] = findRipples(WT,F,newt,params);
-            if isempty(timbs), continue; end
+%             if isempty(timbs), continue; end
             
             if db(k).hasOpto(d)
                 if size(timbs,1) > size(stim,1)

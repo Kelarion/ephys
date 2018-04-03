@@ -13,9 +13,9 @@ lief = getLFP(dat,sp.sample_rate,filt_low);
 [WT, F, newt, COI] = cwtnarrow(lief,sp.sample_rate,[50 15],'voicesperoctave',30);
 F = F(:);
  
-tdat = [1:length(dat)]/sp.sample_rate;
-
 %% plot
+tdat = [1:size(rawDat.Data.x,2)]/sp.sample_rate;
+
 [timbs,freqs] = findRipples(WT,F,newt);
 [~,ii] = sort(freqs);
 inds = findNearestPoint(sort(freqs),[sort(F); nan(1000,1)]); % because this function is weird
@@ -25,10 +25,10 @@ freqtims = mean(timbs,2);
 
 figure('units','normalized','position',[0.0406 0.3269 0.9406 0.5778]);
 ax(1) = subtightplot(2,1,1,[0.005,0.01]);
-ax(1).YLim = [min(dat) max(dat)];
+ax(1).YLim = [min(rawDat.Data.x(chan,1:2:end)) max(rawDat.Data.x(chan,1:2:end))];
 shadeEvents(timbs',[],ax(1))
 hold on
-plot(ax(1),tdat(1:2:end),dat(1:2:end))
+plot(ax(1),tdat(1:2:end),rawDat.Data.x(chan,1:2:end))
 hold off
 ax(1).XTick = [];
 ax(1).YTick = [];
