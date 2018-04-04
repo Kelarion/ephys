@@ -45,10 +45,21 @@ db(n).tags          = {'K1' 'K2' 'K3'};
 % db(n).mouse_name    = 'SS088';
 % db(n).date          = '2018-01-30';
 % db(n).dataServer    = 'main'; % means "zubjects\Subjects"
-% db(n).ksRoot        = 'C:\DATA\Spikes\';
 % db(n).tlExp         = 2; 
 % db(n).cwExp         = 5;
 % db(n).noiseExp      = 6;
 % db(n).passiveExp    = 8;
-% db(n).tags          = {'K1' 'K2' 'K3' 'K4'};
+% db(n).tags          = {'K1','K2','K3','ZO'};
+
+% n = n+1;
+% db(n).mouse_name    = 'SS088';
+% db(n).date          = '2018-01-31';
+% db(n).dataServer    = 'main'; % means "zubjects\Subjects"
+% db(n).tlExp         = 2; 
+% db(n).cwExp         = 3;
+% db(n).noiseExp      = 4;
+% db(n).passiveExp    = 5;
+% db(n).tags          = {'K1','K2','K3'};
+
+
 

@@ -7,7 +7,7 @@ function scatlab(varargin)
 % All extra arguments are passed directly into 'scatter' function.
 
 fig = gcf;
-fig.DeleteFcn = 'doc datacursormode';
+% fig.DeleteFcn = 'doc datacursormode';
 X = varargin{1};
 Y = varargin{2};
 lab = varargin{3};

@@ -19,6 +19,7 @@ elseif contains(mFiles(1).name,'imec')
     neurofile = neurf(contains({neurf.name},'ap')).name;
     spks.dat_path = neurofile;
     spks.lfp_path = neurf(contains({neurf.name},'lf')).name;
+    lfpf = neurf(contains({neurf.name},'lf'));
     neurf = neurf(contains({neurf.name},'ap'));
 end 
 meta_text = fileread([jrcDir metafile]);
@@ -62,6 +63,11 @@ tmp_amps = cell2mat(amps);
 dataTypeNBytes = numel(typecast(cast(0, s.P.vcDataType), 'uint8'));
 nSampDat = neurf.bytes/(spks.n_channels_dat*dataTypeNBytes);
 
+if exist('lfpf','var')
+    nSampLFP = lfpf.bytes/(spks.n_channels_dat*dataTypeNBytes);
+    spks.lfp_sample_rate = 2500;
+end
+
 if exist([jrcDir '\clustered\t_frame.mat'],'file')
     vidya = load([jrcDir '\clustered\t_frame.mat']);
 else
@@ -70,6 +76,9 @@ end
 
 spks.dtype          = s.P.vcDataType;
 spks.nSampDat       = nSampDat;
+if exist('nSampLFP','var')
+    spks.nSampLFP   = nSampLFP;
+end
 spks.st             = st; % good old spike times 
 spks.clu            = tmp_cids(inds); % cluster ID for each spike
 spks.cids           = unique(tmp_cids); % all available cluster IDs
@@ -85,4 +94,6 @@ spks.ycoords        = s.P.mrSiteXY(:,2); % y position of those sites
 if ~isempty(vidya)
     spks.frameTimes = vidya.t_frame;
 end
+
+
 
