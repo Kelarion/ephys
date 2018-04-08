@@ -36,9 +36,11 @@ db(n).badAux        = false;
 db(n).hasOpto       = [true,true];
 n = n + 1;
 
-% db(n).name          = 'leto_II'; % the imec recordings
-% db(n).serial        = 'M378800';
-% db(n).date          = '7-11-17';
-% db(n).depth         = {'3547'};
-% db(n).side          = 'right';
-% n = n + 1;
+db(n).name          = 'leto_II'; % the imec recordings
+db(n).serial        = 'M378800';
+db(n).date          = '7-11-17';
+db(n).depth         = {'3547'};
+db(n).side          = 'right';
+db(n).badAux        = false;
+db(n).hasOpto       = [false];
+n = n + 1;

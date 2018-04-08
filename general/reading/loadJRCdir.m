@@ -5,7 +5,8 @@ function spks = loadJRCdir(jrcDir,getInds)
 % jrcDir should be the folder with the *.bin file, and should contain a
 % subfolder \clustered\ which has the *_jrc.mat file.
 %
-% Note: setting 'getInds' to true assumes that 'ind.mat' already exists. 
+% Note: setting 'getInds' to true will make and write 'ind.mat' if it 
+% doesn't exist.
 
 if nargin <2, getInds = false; end
 mFiles = dir([jrcDir '*.meta']);
@@ -35,11 +36,18 @@ spks.sample_rate = str2num(meta_text(ind_fs+(0:4)));
 fs_neuro = spks.sample_rate;
 
 if getInds
-    tmp = load([jrcDir '\ind']); % assuming this exists
-    event_inds = tmp.ind; % made by get_event_inds[_neuropixels].m
-    i_pulse = event_inds{1}; % only for Britton's data
-    spks.auxChannel = event_inds(2:end);
-    spks.i_pulse = i_pulse;
+    if exist([jrcDir '\ind.mat'],'file')
+        tmp = load([jrcDir '\ind']); % assuming this exists
+        event_inds = tmp.ind; % made by get_event_inds[_neuropixels].m
+        spks.auxChannel = event_inds(2:end);
+        spks.i_pulse = event_inds{1};
+    else
+        disp('event inds not found, finding them now...')
+        ind = get_event_ind([jrcDir neurf.name],66,65:66,[],0); % make and save ind file
+        spks.auxChannel = ind(2:end);
+        spks.i_pulse = ind{1};
+        save([jrcDir '\ind'],'ind')
+    end
 end
 
 jrc_file = ls([jrcDir '\clustered\*_jrc.mat']);

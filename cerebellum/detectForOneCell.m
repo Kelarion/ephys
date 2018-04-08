@@ -1,6 +1,6 @@
-ksRoot = 'D:\data\';
+ksRoot = 'C:\DATA\Spikes\Janelia\';
 
-params.pThresh = 170; % arbitrary magnitude units
+params.pThresh = 150; % arbitrary magnitude units
 params.tThresh = 4; % periods
 params.minBetween = 0.5; % seconds
 params.noiseCutoff = 18; % Hz
@@ -12,9 +12,9 @@ if ~exist('filt_low','var') % takes a long time to make this filter
     filt_low = firpm(c{:}); 
 end % but it seems to give the best performance for such a narrow bandwidth
 
-cid = 1;
-d = 2;
-k = 3;
+cid = 2;
+d = 3;
+k = 1;
 %% load
 parentDir = [ksRoot '\' db(k).name '\'];
 subDir = dir([parentDir '*' db(k).date]);
@@ -62,7 +62,9 @@ end
 
 chan = sp.chanMap(sp.mainChannel(sp.cids == cid));
 lief = getLFP(rawDat.Data.x(chan,:),sp.sample_rate,filt_low);
-phas = angle(hilbert(lief));
+berty = hilbert(lief);
+phas = angle(berty);
+mag = abs(berty);
 
 [WT, F, newt, COI] = cwtnarrow(lief,sp.sample_rate,[50 15],'voicesperoctave',nvox);
 F = F(:);
@@ -83,19 +85,49 @@ if db(k).hasOpto(d)
     
     % find which were induced by laser:
     % consider events which overlap with stimulation as induced
-    overlap = timbs(inds,1)<stim(detStims,2) | timbs(inds,2)>stim(detStims,1);
+    overlap = timbs(inds,1)<=stim(detStims,2) & timbs(inds,2)>=stim(detStims,1);
     isStim = ismember(1:size(timbs,1),inds(overlap));
     isStim = isStim(:);
-    sfreq = nan(length(isStim),1); % frequency of stim when it caused a ripple
-    sfreq(inds,:) = optoFreq(detStims(overlap));
-
+    sfreq = nan(size(isStim,1),1); % frequency of stim when it caused a ripple
+    sfreq(inds(overlap),:) = optoFreq(detStims(overlap));
+    
+    myst = sum(~overlap);
+    errs = mean(abs(timbs(inds,1)-stim(detStims,1)) + abs(timbs(inds,2)-stim(detStims,2)));
 else
     isStim = false(size(timbs,1),1);
     sfreq = nan(size(timbs,1),1);
 end
-evInds = [1:size(timbs,1)]';
 
 stInds = round(sp.st(sp.clu == cid)*sp.sample_rate);
 wr = WithinRanges(sp.st(sp.clu == cid),timbs,1:size(timbs,1),'vector');
 p = phas(stInds(logical(wr))); % get the phase of each spike relative to the events
+
+%% plot
+figure
+for ii = 1:length(timbs)
+    evInds = round(timbs(ii,:)*sp.sample_rate);
+    thesest = stInds(stInds >= evInds(1) & stInds <= evInds(2));
+    [spx, spy] = rasterize(tdat(thesest),-4,4);
+    
+    subtightplot(2,1,1,[],[],0.1)
+    plot(tdat(evInds(1):evInds(2)),rawDat.Data.x(chan,evInds(1):evInds(2)))
+    axis off
+    subtightplot(2,1,2,[],0.1,0.1)
+    plot(tlfp(evInds(1):evInds(2)),phas(evInds(1):evInds(2)),'linewidth',2);
+    hold on
+    plot(spx,spy)
+    yticks([-3 0 3]);
+    yticklabels({'-pi' '0' 'pi'});
+    xticklabels([])
+    xlabel('Time (5 ms)')
+    ylabel('Phase')
+    box off
+    hold off
+    pause
+end
+
+
+
+
+
 

@@ -8,7 +8,7 @@ function [evTimes,peakFreq,peakPower] = findRipples(WT,F,T,params)
 % - pThresh is threshold on magnitude, i.e. |WT|^2 (default 150)
 % - tThresh is minimum event duration in periods (default 3)
 % - minBetween is minimum distance for two events to be considered different,
-%   in the same units as T (default 0.05 seconds)
+%   in the same units as T (default 0.5 seconds)
 % - noiseCutoff is the minimum spread in frequency domain for an event to
 %   be considered noise, in Hz (default 18)
 %
@@ -17,7 +17,7 @@ function [evTimes,peakFreq,peakPower] = findRipples(WT,F,T,params)
 if nargin < 4, params = struct; end
 if ~isfield(params,'pThresh'), params.pThresh = 150; end
 if ~isfield(params,'tThresh'), params.tThresh = 3; end
-if ~isfield(params,'minBetween'), params.minBetween = 0.05; end % assume seconds
+if ~isfield(params,'minBetween'), params.minBetween = 0.5; end % assume seconds
 if ~isfield(params,'noiseCutoff'), params.noiseCutoff = 18; end
 
 magThr = params.pThresh;
@@ -56,7 +56,7 @@ for iEv = 1:nEvs % go through each event and make sure it passes all criteria
     fmax = F(indf); % if two events of the same frequency are too close together
     if iEv < nEvs  % then we consider them the same event
         [~,i2] = max(mean(mag(:,evOn(iEv+1):evOff(iEv+1)),2));
-        if (abs(F(i2)-fmax) <= 5) && (diff(evOn(iEv:iEv+1)) <= minSampBetween)
+        if (abs(F(i2)-fmax) <= 3) && (diff(evOn(iEv:iEv+1)) <= minSampBetween)
             evOff(iEv) = nan; evOn(iEv+1) = nan;
             peakFreq(iEv) = fmax;
             peakPower(iEv) = m;

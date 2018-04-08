@@ -12,11 +12,16 @@ lief = getLFP(dat,sp.sample_rate,filt_low);
 
 [WT, F, newt, COI] = cwtnarrow(lief,sp.sample_rate,[50 15],'voicesperoctave',30);
 F = F(:);
- 
+
+berty = hilbert(lief);
+phas = angle(berty);
+mag = abs(berty);
+
+[timbs,freqs,pkmag] = findRipples(WT,F,newt,params);
 %% plot
 tdat = [1:size(rawDat.Data.x,2)]/sp.sample_rate;
+tlfp = [1:length(lief)]/sp.sample_rate;
 
-[timbs,freqs] = findRipples(WT,F,newt);
 [~,ii] = sort(freqs);
 inds = findNearestPoint(sort(freqs),[sort(F); nan(1000,1)]); % because this function is weird
 freqinds = zeros(size(freqs));
@@ -29,16 +34,19 @@ ax(1).YLim = [min(rawDat.Data.x(chan,1:2:end)) max(rawDat.Data.x(chan,1:2:end))]
 shadeEvents(timbs',[],ax(1))
 hold on
 plot(ax(1),tdat(1:2:end),rawDat.Data.x(chan,1:2:end))
+plot(ax(1),tlfp(1:2:end),phas(1:2:end).*mag(1:2:end))
 hold off
 ax(1).XTick = [];
 ax(1).YTick = [];
 
-ax(2) = subtightplot(2,1,2,[0.005,0.01]);
+ax(2) = subtightplot(2,1,2,[0.05,0.01],[0.1, 0.05],[0.05 0.05]);
 imagesc(newt,[],abs(WT))
+caxis([0 max(pkmag)])
 yt = yticks; % fix labels
 flabs = split(num2str(F(yt)',3));
 ax(2).YTickLabels = flabs;
 xlabel('Time (sec)')
+ylabel('Frequency')
 hold on;
 text(freqtims,freqinds,split(num2str(freqs',3)), ...
     'HorizontalAlignment','center','fontweight','bold')
