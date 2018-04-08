@@ -1,5 +1,3 @@
-# Supplementary material
+# Matteo's electrophysiology
 
-Below are the supplementary files and figures for the cerebellar project
-
-
+This will probably not work on your machine
