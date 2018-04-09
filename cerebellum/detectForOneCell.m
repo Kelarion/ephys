@@ -1,8 +1,8 @@
 ksRoot = 'C:\DATA\Spikes\Janelia\';
 
-params.pThresh = 150; % arbitrary magnitude units
-params.tThresh = 4; % periods
-params.minBetween = 0.5; % seconds
+params.pThresh = 140; % arbitrary magnitude units
+params.tThresh = 3; % periods
+params.minBetween = 0.1; % seconds
 params.noiseCutoff = 18; % Hz
 nvox = 20; % number of voices
 
@@ -32,6 +32,7 @@ dataDir = [parentDir subDir.name '\'];
 sp = loadJRCdir(dataDir);
 rawDat = memmapfile([dataDir sp.dat_path], 'Format',  ...
     {sp.dtype, [sp.n_channels_dat sp.nSampDat], 'x'});
+tdat = [1:size(rawDat.Data.x,2)]/sp.sample_rate;
 
 %% detect
 if db(k).hasOpto(d)

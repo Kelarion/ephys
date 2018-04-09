@@ -34,7 +34,7 @@ ax(1).YLim = [min(rawDat.Data.x(chan,1:2:end)) max(rawDat.Data.x(chan,1:2:end))]
 shadeEvents(timbs',[],ax(1))
 hold on
 plot(ax(1),tdat(1:2:end),rawDat.Data.x(chan,1:2:end))
-plot(ax(1),tlfp(1:2:end),phas(1:2:end).*mag(1:2:end))
+% plot(ax(1),tlfp(1:2:end),phas(1:2:end).*mag(1:2:end))
 hold off
 ax(1).XTick = [];
 ax(1).YTick = [];

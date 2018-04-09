@@ -3,9 +3,9 @@ ksRoot = 'C:\DATA\Spikes\Janelia\';
 
 verbose = 1;
 
-params.pThresh = 150; % arbitrary magnitude units
-params.tThresh = 4; % periods
-params.minBetween = 0.5; % seconds
+params.pThresh = 130; % arbitrary magnitude units
+params.tThresh = 3; % periods
+params.minBetween = 0.1; % seconds
 params.noiseCutoff = 18; % Hz
 nvox = 20; % number of voices
 
@@ -205,7 +205,7 @@ R.whichCell = whichCell;
 if verbose
     disp('done with everything');
     disp(['We missed ' num2str(nMiss) ' probable events across all datasets']);
-    disp([' with a mean error of ' num2str(mean(meanErr)) ' seconds for those we got']);
+    disp([' with a mean error of ' num2str(nanmean(meanErr)) ' seconds for those we got']);
     disp('congratulations');
 end
 

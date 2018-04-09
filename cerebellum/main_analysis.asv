@@ -42,7 +42,7 @@ for iClu = 1:nClu
         p_equal_mdn(iClu) = circ_cmtest(R.spkPhase(CID == cgs(iClu) & ~R.isOpto), R.spkPhase(CID == cgs(iClu) & R.isOpto));
     end
 end
-samePhs_CID = cgs(p_equal_mdn > alph);
+samePhs_CID = cgs(p_equal_mdn > 0.1);
 
 %% mean phase comparisons
 [cidOp,~,indOp] = unique(CID(R.isOpto));
@@ -111,6 +111,8 @@ end
 plot(real(phsors),imag(phsors),'linewidth',2)
 scatlab(real(phsDiff(lckd)),imag(phsDiff(lckd)),inboth(lckd),[],spontFreq(lckd),'filled')
 scatlab(real(phsDiff(~lckd)),imag(phsDiff(~lckd)),inboth(~lckd),[],spontFreq(~lckd))
+text(real(phsDiff(smphs)),imag(phsDiff(smphs)),'*','color','w','fontsize',24,...
+    'horizontalalignment','left','verticalalignment','middle')
 
 title('\boldmath${\bar{z}_{spont} / \hat{\bar{z}}_{opto}}$','fontsize',14,'interpreter','latex')
 xlabel('Real part');ylabel('Imaginary part')
@@ -119,10 +121,7 @@ c = colorbar;
 c.Label.String = 'mean spontaneous frequency (Hz)';
 c.Label.FontSize = 11;
 colormap jet
-whitebg([0.7 0.7 0.7])
-
-text(real(phsDiff(smphs)),imag(phsDiff(smphs)),'*','color','w','fontsize',24,...
-    'horizontalalignment','left','verticalalignment','middle')
+whitebg(
 
 % figure;
 % polarhistogram(R.spkPhase(ismember(CID,modulated_CID) & ~R.isOpto),32)
