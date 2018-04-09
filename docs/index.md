@@ -1,4 +1,4 @@
-# Matteo's electophysiology
+# Matteo's electophysiology code
 
 This is the main page
 
