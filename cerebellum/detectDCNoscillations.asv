@@ -5,7 +5,7 @@ verbose = 1;
 
 params.pThresh = 150; % arbitrary magnitude units
 params.tThresh = 4; % periods
-params.minBetween = 0.5; % seconds
+params.minBetween = 0.6; % seconds
 params.noiseCutoff = 18; % Hz
 nvox = 20; % number of voices
 
@@ -147,7 +147,7 @@ for k = 1:length(db)
                 myst(iClu) = myst(iClu) + sum(~overlap);
 %                 err = abs(timbs(inds(overlap),1)-stim(detStims(overlap),1)) ...
 %                     + abs(timbs(inds(overlap),2)-stim(detStims(overlap),2));
-                err = abs(timbs(inds(overlap),1)-stim(detStims(overlap),1));
+                errs = mean(abs(timbs(inds(overlap),1)-stim(detStims(overlap),1)));
                 errs(iClu) = mean(err);
             else
                 isStim = false(size(timbs,1),1);

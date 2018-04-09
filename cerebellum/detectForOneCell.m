@@ -12,6 +12,8 @@ if ~exist('filt_low','var') % takes a long time to make this filter
     filt_low = firpm(c{:}); 
 end % but it seems to give the best performance for such a narrow bandwidth
 
+wheel_db
+
 cid = 2;
 d = 3;
 k = 1;
@@ -92,7 +94,9 @@ if db(k).hasOpto(d)
     sfreq(inds(overlap),:) = optoFreq(detStims(overlap));
     
     myst = sum(~overlap);
-    errs = mean(abs(timbs(inds,1)-stim(detStims,1)) + abs(timbs(inds,2)-stim(detStims,2)));
+%     errs = mean(abs(timbs(inds(overlap),1)-stim(detStims(overlap),1)) ...
+%         + abs(timbs(inds(overlap),2)-stim(detStims(overlap),2)));
+    errs = mean(abs(timbs(inds(overlap),1)-stim(detStims(overlap),1)));
 else
     isStim = false(size(timbs,1),1);
     sfreq = nan(size(timbs,1),1);

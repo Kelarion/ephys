@@ -454,7 +454,7 @@ for iSet = 1:size(dsets,1)
             avgVid1_frame = zeros(vid1.Height,vid1.Width,3,'uint8');
             for iEv = 1:size(cluEvs,1) % get average over all events
                 t_frame = cluEvs(iEv,lockTo) + frem_offsets(ff) - vidOffset;
-                if (t_frame<0) || (t_frame >= min([vid0.Duration vid1.Duration]))
+                if (t_frame<0) || (t_frame >= vid0.Duration)
                     continue
                 end
                 vid0.CurrentTime = t_frame;
