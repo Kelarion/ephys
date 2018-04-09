@@ -1,3 +1,4 @@
-theme: jekyll-theme-minimal
-description: this probably won't work on your machine 
-logo: img/wheelcartoon.png
+title: ephys
+logo: img/logo.jpg
+description: a fruitful collaboration with myself
+theme: jekyll-theme-minimal 
