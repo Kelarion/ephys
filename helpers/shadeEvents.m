@@ -1,19 +1,20 @@
-function h = shadeEvents(ev,t,ax,varargin)
+function h = shadeEvents(ev,col,t,varargin)
 % shadeEvents(ev,t,ax[,Name,Value])
 %
 % Shade regions on an axis, 'ax', when an event is occurring. 
 %
 % Inputs: 
-%   - ax: axes
 %   - ev: either [Onset Offset] matrix or logical vector
+%   - col: color, passed straight into 'fill' function
 %   - t: if ev is logical, supply the corresponding time vector
 %        (otherwise supply empty array)
 % Extra arguments are passed into 'fill' function.
 
-if ~exist('ax','var') || isempty(ax), ax=gca; end
+ax = gca;
+if ~exist('col','var') || isempty(col), col=[0.8 0.8 0.8]; end
 
 if ~exist('varargin','var') || length(varargin) < 1
-    varargin = {[0.8 0.8 0.8], 'FaceAlpha',0.7,'linestyle','none'};
+    varargin = {'FaceAlpha',0.3,'linestyle','none'};
 end
 
 if (any(ev) > 1)
@@ -32,9 +33,9 @@ end
 nEvs = length(tEvs)/2; % how many events
 
 if nargout > 1
-    h = fill(ax,repelem(tEvs,2),repmat([ax.YLim, fliplr(ax.YLim)], nEvs),varargin{:});
+    h = fill(ax,repelem(tEvs,2),repmat([ax.YLim, fliplr(ax.YLim)], nEvs),col,varargin{:});
 else
-    fill(ax,repelem(tEvs,2),repmat([ax.YLim, fliplr(ax.YLim)], nEvs),varargin{:});
+    fill(ax,repelem(tEvs,2),repmat([ax.YLim, fliplr(ax.YLim)], nEvs),col,varargin{:});
 end
 
 end
