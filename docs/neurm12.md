@@ -4,9 +4,9 @@ title: cerebellum project
 
 # Supplementary material
 
-Please find below the files and figures which supplement the full report on the deep cerebellar nuclei. See my [github repository] for the code to generate all the figures.
+Please find below the files and figures which supplement the full report on the deep cerebellar nuclei. See the [github folder] for the code to generate the figures from the report. (Run 'main_analysis.m' -- it will probably require the rest of the ephys repository to run.)
 
-[github repository]:https://github.com/Kelarion/ephys/cerebellum
+[github folder]:https://github.com/Kelarion/ephys/cerebellum
 
 Behavior videos
 ------
