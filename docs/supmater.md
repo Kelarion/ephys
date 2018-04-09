@@ -16,7 +16,7 @@ Behavior videos
 
 [muad_dib_6-19-17_2217_meanEventOnset.avi]: https://drive.google.com/file/d/1ZMPyG3y3KX1GGi99VKt-0TK4YMBdshu4/view?usp=sharing
 
-[screencap]:(img/meanMovieStill.jpg "A yellow dot calms the thousand-limbed beast")
+[screencap]:img/meanMovieStill.jpg "A yellow dot calms the thousand-limbed beast"
 
 Experimental Methods
 ------
