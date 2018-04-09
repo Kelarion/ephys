@@ -4,11 +4,11 @@ title: cerebellum project
 
 # Supplementary material
 
-Please find below the files and figures which supplement the full report on the deep cerebellar nuclei. See the [github folder] for the code to generate the figures from the report. (Run 'main_analysis.m' -- it will probably require the rest of the ephys repository to run.)
+These are the files and figures which supplement the full report on the deep cerebellar nuclei. See [this github folder] for the code to generate the figures from the report. (See 'main_analysis.m' -- it may require the rest of the ephys repository to run.)
 
-[github folder]:https://github.com/Kelarion/ephys/cerebellum
+[this github folder]:https://github.com/Kelarion/ephys/cerebellum
 
-Behavior videos
+Movies
 ------
 **Sup. Mov. 1**: [muad_dib_6-19-17_2217_meanEventOnset.avi]
 
@@ -20,3 +20,6 @@ Behavior videos
 
 Experimental Methods
 ------
+
+
+
