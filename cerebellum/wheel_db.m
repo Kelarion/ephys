@@ -28,7 +28,7 @@ db(n).hasOpto       = [false,false,false];
 n = n + 1;
 
 db(n).name          = 'wensicia';
-db(n).serial        = 'M38112';
+db(n).serial        = 'M383112';
 db(n).date          = '8-28-17';
 db(n).depth         = {'2331'};
 db(n).side          = 'left';

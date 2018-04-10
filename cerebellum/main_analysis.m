@@ -17,7 +17,7 @@ nClu = length(cgs);
 %% assess significance of phase-locking 
 % in reality, testing for non-uniformity of phase distribution
 minNSpk = 50;
-alph = 0.005;
+alph = 0.01;
 
 pvals = nan(nClu,3); 
 for iClu = 1:nClu
@@ -211,7 +211,7 @@ end
 % end
 
 figure;
-bar(interval_bins(1:end-1),sum(end2start,2),'histc')
+bar(interval_bins(1:end-1),sum(start2start,2),'histc')
 xlabel('Inter-event interval (sec)')
 ylabel('Number of events')
 

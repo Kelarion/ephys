@@ -145,9 +145,9 @@ for k = 1:length(db)
                 sfreq(inds(overlap),:) = optoFreq(detStims(overlap));
                 
                 myst(iClu) = myst(iClu) + sum(~overlap);
-%                 err = abs(timbs(inds(overlap),1)-stim(detStims(overlap),1)) ...
-%                     + abs(timbs(inds(overlap),2)-stim(detStims(overlap),2));
-                err = abs(timbs(inds(overlap),1)-stim(detStims(overlap),1));
+                err = abs(timbs(inds(overlap),1)-stim(detStims(overlap),1)) ...
+                    + abs(timbs(inds(overlap),2)-stim(detStims(overlap),2));
+%                 err = abs(timbs(inds(overlap),1)-stim(detStims(overlap),1));
                 errs(iClu) = mean(err);
             else
                 isStim = false(size(timbs,1),1);
