@@ -26,13 +26,13 @@ Online experimental methods
 
 **Electrophysiology.**
 
-Following one or two days habituation to the ladder, craniotomies were made over the cerebellar cortex to allow access to the deep nuclei. These did occasionally damage the tissue, which might contribute to the phenomena described in the report. In the first recordings (Muad'Dib), a NeuroNexus 4x16 probe was used for acquisition; in subsequent recordings (all other mice), a custom design (Hires 4x16 Janelia probes) was used. In a recording session, we began acquiring  recordings once online phototagging confirmed DCN localization (see *Probe localization*); after ~10 minutes, probes were lowered at least 300 microns until the next acquisition to prevent overlap in neurons sampled in each recording. In some recordings, recordings of spontaneous activity (i.e. without overt movement) were also taken -- however, these are yet unprocess and thus not analysed in the report.
+Following one or two days habituation to the ladder, craniotomies were made over the cerebellar cortex to allow access to the deep nuclei. These did occasionally damage the tissue, which might contribute to the phenomena described in the report. In the first recordings (Muad'Dib), a NeuroNexus 4x16 probe was used for acquisition; in subsequent recordings (all other mice), a custom design (Hires 4x16 Janelia probes) was used. In a recording session, we began acquiring  recordings once online phototagging confirmed DCN localization (see *Probe localization*); after ~10 minutes, probes were lowered at least 300 microns until the next acquisition to prevent overlap in neurons sampled in each recording. In some recordings, recordings of spontaneous activity (i.e. without overt movement) were also taken -- however, these are yet unprocessed and thus were not analysed in the report.
 
 
 
 **Spike sorting.**
 
-Software developed on-site (JRClust, James Jun) was used to isolate individual neurons from the extracellular recording. A manual curation step was used to assess automatic performance and label well-isolated units from multiunit activity. A conservative approach was taken, and only well-isolated units were included in the analysis.
+Software developed on-site (JRClust, James Jun) was used to isolate individual neurons from the extracellular recording. A manual curation step was used to assess automatic performance and label well-isolated units from multiunit activity. I was conservative in my assessment, and only well-isolated units were included in the analysis.
 
 
 
