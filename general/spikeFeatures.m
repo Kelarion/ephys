@@ -3,11 +3,12 @@ function sf = spikeFeatures(wf,Fs)
 % 
 % Compute some features of the extracellular action potential (EAP)
 % waveform, which are likely to relate to the density of different ion
-% conductances (Gold, ..., and Buszaki, 2006). If this is computed on the
+% conductances (Gold, alia, Buszaki, 2006). If this is computed on the
 % raw waveforms, then the variance of those features is also returned; if
-% they are computed on the mean waveform or template (from spike sorting) 
-% then just the quantities are returned.
-%
+% they are computed on the mean waveform or template (from spike-sorting) 
+% then just the quantities are returned. (At the moment it only works for
+% the latter scenario.)
+% 
 % Inputs
 % - wf [nSamp,nClu(,nSpikes)]: The EAP waveforms.
 % - Fs [1,1]: Sample rate (default 1).

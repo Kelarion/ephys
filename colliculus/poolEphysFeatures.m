@@ -1,8 +1,8 @@
 %% pool everything
 localRoot = 'C:\DATA\Spikes\';
 
-overwrite = 1;
-verbose = 1;
+overwrite = true;
+verbose = true;
 
 acg_time = 1; % second
 acg_binsize = 0.0005; % seconds
@@ -31,7 +31,7 @@ for k = 1:length(db)
         % load everything for that probe
         [dsetFolders, dataDir, alnDir, ~, alfDir] = ... 
             expDirs(db(k).mouse_name,db(k).date,thisTag,db(k).dataServer);
-        if isempty('db(k).ksRoot')
+        if ~isempty(db(k).ksRoot)
             ksDir = [db(k).ksRoot dsetFolders '\sorting\'];
         else
             ksDir = [dataDir '\sorting\'];
@@ -121,19 +121,19 @@ for k = 1:length(db)
         end
         
         %% choose which cells to keep
-        % we only want cells in the mid-brain, they're much more interesting anyway
-        mesoCells = cluDepth(:) < scTop & cluDepth(:) > scBottom;
+        % we only want cells in the mid-brain, as they're much more interesting
+        mesoCells = cluDepth(:) < scTop & cluDepth(:) > scBottom; 
         mesoCells = mesoCells & cluNspk(:) >= 800; % got to have spikes
         
         mesoCluID = spks.cids(mesoCells);
-        goodMeso = mesoCells & spks.cgs(:) == 2;
+        goodMeso = mesoCells & spks.cgs(:) == 2; % and be labelled as 'good'
         
         if verbose, disp(['  found ' num2str(sum(mesoCells)) ' cells in midbrain']); end
         if verbose, disp(['  of which ' num2str(sum(goodMeso)) ' are ''good''']); end
         if ~any(goodMeso), continue; end
         
         nClu = sum(goodMeso);
-        goodMesoCIDs = spks.cids(goodMeso);
+        goodMesoCIDs = spks.cids(goodMeso); % these are the cells we use
         mesoSites = cluSites(goodMeso);
         
         % remember, both cluID and cluTemps are zero-indexed!!
@@ -144,7 +144,7 @@ for k = 1:length(db)
         spks.scTop = scTop;
         spks.scBottom = scBottom;
         % first column is cluster ID, second is tag, third is db index
-        % to do: find a better way to index datasets!
+        % to do: find a better indexing system!
         whichCell = [whichCell; goodMesoCIDs(:) ones(nClu,1)*k ones(nClu,1)*t];
         nSpks = [nSpks; cluNspk(goodMeso)];
         Amp = [Amp; cluAmps(goodMeso)];
@@ -245,7 +245,7 @@ for k = 1:length(db)
             [~, ind2] = max(max(abs(snrf.neur_rfmap{dis}),[],1));
             moddir(iCell) = sign(snrf.neur_rfmap{dis}(ind1,ind2))*snrf.neur_rfstats(dis).peakZscore;
         end 
-        visFeats = [visFeats moddir];
+        visFeats = [visFeats; moddir];
         if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
         
 %         %% Rhythmicity
@@ -265,7 +265,7 @@ for k = 1:length(db)
 end
 
 % package
-feats.features = [ephysFeats ACGfeats ISIfeats visFeats];    
+feats.features = [ephysFeats ACGfeats ISIfeats visFeats];
 feats.labels = labs;            feats.whichCell = whichCell;
 feats.amplitude = Amp;          feats.nSpks = nSpks;
 feats.ACG = ACG;                feats.ACG_bins = ACG_bins;             

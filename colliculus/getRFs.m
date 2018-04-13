@@ -1,27 +1,37 @@
 localRoot = 'C:\DATA\Spikes\';
-overwrite = 1;
+overwrite = 0;
 verbose = 1;
 lfp_thresh = 1.2; % stronger response than this counted as 
 
 clear db
-ephys_celltypes_db
+ephys_bilateral_db
 %% 
 % supply a 'paragon' structure, against which any existing structure is
 % compared. Make sure that this file is exactly how you want all others to
 % look, since extra fields will be deleted.
 paragon = [localRoot 'SS072\2016-12-02\ephys_SC\sparse_noise_RFs.mat'];
 for k = 1:length(db)
+    %%
     for t = 1:length(db(k).tags), thisTag = db(k).tags{t};
         clear snrf
         % load data
         [dsetFolders,dataDir, alnDir, infoDir, alfDir] = ... 
             expDirs(db(k).mouse_name,db(k).date,thisTag,db(k).dataServer);
-        if ~isempty(db(k).ksRoot)
-            ksDir = [db(k).ksRoot dsetFolders '\sorting\'];
+        if isfield(db,'ksRoot')
+            if ~isempty(db(k).ksRoot)
+                ksDir = [db(k).ksRoot dsetFolders '\sorting\'];
+            else
+                ksDir = [dataDir '\sorting\'];
+            end
         else
             ksDir = [dataDir '\sorting\'];
         end
         
+        saveFolder = [localRoot dsetFolders];
+        if ~overwrite && exist([saveFolder 'sparse_noise_RFs.mat'],'file')
+            continue
+        end
+            
         spks = loadNeuralData(ksDir,dataDir); % loads all neural data
         
         aln = loadAlignments(alnDir,thisTag,db(k).tlExp, 'noise',db(k).noiseExp);
@@ -43,30 +53,28 @@ for k = 1:length(db)
             end
         end
         
-        saveFolder = [localRoot dsetFolders];
-        if exist([saveFolder 'sparse_noise_RFs.mat'],'file')
-            if overwrite && ~isempty(paragon) % save time by only fixing what is missing
-                if verbose, disp(['Fixing: ' db(k).mouse_name ' on ' db(k).date ', ephys_' thisTag]); end
-                g = load(paragon);
-                snrf = loadVar([saveFolder 'sparse_noise_RFs.mat'],'snrf');
-                mustHave = fieldnames(g.snrf);
-                doesHave = fieldnames(snrf);
-                missing = ~contains(mustHave,doesHave);
-                extra = ~contains(doesHave,mustHave);
-                if any(contains(mustHave(missing),'neur_ID'))
-                    snrf.neur_ID = spks.cids;
-                end
-                if any(contains(mustHave(missing),'XPos'))
-                    snrf.XPos = unique(stimPosition(:,2)); 
-                    snrf.YPos = -unique(stimPosition(:,1));
-                end
-                snrf = rmfield(snrf,doesHave(extra));
-                save([saveFolder 'sparse_noise_RFs.mat'],'snrf')
-                continue
-            elseif ~overwrite
-                continue
+        if exist([saveFolder 'sparse_noise_RFs.mat'],'file') && exist('paragon','var') 
+            if verbose % save time by only fixing what is missing
+                disp(['Fixing: ' db(k).mouse_name ' on ' db(k).date ', ephys_' thisTag]); 
             end
-        elseif verbose
+            g = load(paragon);
+            snrf = loadVar([saveFolder 'sparse_noise_RFs.mat'],'snrf');
+            mustHave = fieldnames(g.snrf);
+            doesHave = fieldnames(snrf);
+            missing = ~contains(mustHave,doesHave);
+            extra = ~contains(doesHave,mustHave);
+            if any(contains(mustHave(missing),'neur_ID'))
+                snrf.neur_ID = spks.cids;
+            end
+            if any(contains(mustHave(missing),'XPos'))
+                snrf.XPos = unique(stimPosition(:,2));
+                snrf.YPos = -unique(stimPosition(:,1));
+            end
+            snrf = rmfield(snrf,doesHave(extra));
+            save([saveFolder 'sparse_noise_RFs.mat'],'snrf')
+            continue
+        end
+        if verbose
             disp(['Now: ' db(k).mouse_name ' on ' db(k).date ', ephys_' thisTag])
         end
         
@@ -86,7 +94,7 @@ for k = 1:length(db)
         [m, ind] = max(-timeCourse,[],2);
         peakTime = ind(m == max(m));
         depthResponse = zscore(timeCourse(:,peakTime));
-        respChan = chn(thresholdMinDur(-depthResponse, lfp_thresh,3));
+        respChan = chn(thresholdMinDur(-depthResponse, lfp_thresh,2));
         
         snrf.lfp_rfmap = lfpRF;   snrf.lfp_timecourse = timeCourse;  
         snrf.responsive_channels = respChan; snrf.computed_channels = chn;

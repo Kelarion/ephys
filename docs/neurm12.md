@@ -6,7 +6,7 @@ title: cerebellum project
 
 These are the files and figures which supplement the full report on the deep cerebellar nuclei. See [this github folder] for the code to generate the figures from the report. (See 'main_analysis.m' -- it may require the rest of the ephys repository to run.)
 
-[this github folder]:https://github.com/Kelarion/ephys/cerebellum
+[this github folder]:https://github.com/Kelarion/ephys/tree/master/cerebellum
 
 Movies
 ------
