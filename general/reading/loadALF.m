@@ -11,7 +11,7 @@ fields = {'cwFeedback' 'cwGoCue' 'cwResponse' ...
     'passiveTrials' 'passiveValveClick' 'wheel' 'wheelMoves'};
 
 if ~isempty(varargin)
-    fields(end:end+length(varargin)) = varargin;
+    fields(end:end+length(varargin)-1) = varargin;
 end
 fields = unique(fields);
 

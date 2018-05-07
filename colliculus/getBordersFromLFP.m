@@ -115,7 +115,7 @@ for k = 7:10
         peakTime = ind(m == max(m));
         depthResponse = zscore(timeCourse(:,peakTime));
         respChan = tcChans(thresholdMinDur(-depthResponse, 1.5,3));
-        infSC = max(spks.ycoords) - spks.ycoords(max(respChan));
+        infSC = spks.ycoords(max(respChan)); % border from visual response
         
         %% compute LFP correlations
         cormat = zeros(length(liveChans),length(liveChans),nBlocks);
@@ -132,17 +132,16 @@ for k = 7:10
         disp(['    ... done in ' num2str(toc) ' seconds'])
         
         rows = findDiagBlocks(cormat(:,:,3),3); % finds row of the block diagonals
-        infCtx = max(spks.ycoords) - spks.ycoords(max(rows));
+        infCtx = spks.ycoords(max(rows)); % border from correlations
         %% plot
         [x, y] = meshgrid(spks.ycoords,spks.ycoords);
-        x = max(spks.ycoords) - x;
-        y = max(spks.ycoords) - y;
+
         fig = figure('Units','Normalized','Position',[0.0953 0.0417 0.6177 0.8796],'visible','off');
         for iAx = 1:nBlocks
             ax1 = subplot(3,3,1 + 3*(iAx-1));
             h = pcolor(x,y,cormat(:,:,iAx)); h.EdgeColor = 'none';
-            set(ax1,'Ydir', 'reverse');
-            ylabel('Depth from surface')
+            set(ax1,'Xdir', 'reverse'); 
+            ylabel('Depth from bottom')
             title(ax1,['Correlations during ' blockNames{iAx}])
             hold(ax1,'on'); 
             plot(xlim,[infCtx infCtx],'-.','color','k')
@@ -254,3 +253,5 @@ end
 % mua_corr = corrcoef(binned_spikes_depth');
 % mua_corr(all(isnan(mua_corr),2),:) = [];
 % mua_corr(:,all(isnan(mua_corr),1)) = [];
+
+

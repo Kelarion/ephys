@@ -5,14 +5,14 @@
 % cwstart, cwend, passtart, pasend, inclCID, iclu
 
 
-% tuning surface with marginals
+%% tuning surface with marginals
 ax(1) = subtightplot(5,9,[10 11 19 20]); % full tuning surface
 
 ax(2) = subtightplot(5,9,[1 2]); % upper marginal
 
 ax(3) = subtightplot(5,9,[12 21]); % right marginal
 
-% receptive field
+%% receptive field
 ax(4) =subtightplot(5,9,[28 29 30 37 38 39],[0.15 0.01]);
 imagesc(snrf.XPos,snrf.YPos,snrf.neur_rfmap{snrf.neur_ID == inclCID(iclu)})
 set(gca,'ydir','normal')
@@ -22,7 +22,7 @@ plot(cwSigma*cos(0:0.1:2*pi) - cwXPos,cwSigma*sin(0:0.1:2*pi) + cwYPos,'--','col
 title('Sparse noise RF')
 hold off;
 
-% psth
+%% psth
 ax(5) =subtightplot(5,9,[ 4 5 6],[0.01 0.1],[0.01, 0.05],[0.05 0.05]); % mean psth
 
 ax(6) =subtightplot(5,9,[ 13 14 15  22 23 24],[0.01 0.1]); % all psth
@@ -42,17 +42,17 @@ hold(ax(7),'off')
 linkaxes(ax(5:7),'x')
 ylabel('Event number')
 
-% cluster information
+%% cluster information
 ax(8) =subtightplot(5,9,[7 8 9],[0.05,0.05]); % amplitude plot
 scatter(spks.st(spks.clu == inclCID(iclu)),spks.gain*spks.spikeAmps(spks.clu == inclCID(iclu)),24,'markeredgealpha',0.1)
-hold on
-linesAtEvents([cwstart cwend],gca,'--','linewidth',2,'color','b')
-text(mean([cwstart cwend]),max(ylim),'active','color','b','fontweight','bold','fontsize',14, ...
-    'verticalalignment','top','horizontalalignment','center')
-linesAtEvents([passtart pasend],gca,'--','linewidth',2,'color','r')
-text(mean([passtart pasend]),max(ylim),'passive','color','r','fontweight','bold','fontsize',14,...
-    'verticalalignment','top','horizontalalignment','center')
-hold off
+% hold on
+% linesAtEvents([cwstart cwend],gca,'--','linewidth',2,'color','b')
+% text(mean([cwstart cwend]),max(ylim),'active','color','b','fontweight','bold','fontsize',14, ...
+%     'verticalalignment','top','horizontalalignment','center')
+% linesAtEvents([passtart pasend],gca,'--','linewidth',2,'color','r')
+% text(mean([passtart pasend]),max(ylim),'passive','color','r','fontweight','bold','fontsize',14,...
+%     'verticalalignment','top','horizontalalignment','center')
+% hold off
 ylabel('spike amp')
 xlabel('time')
 

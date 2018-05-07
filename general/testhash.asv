@@ -1,6 +1,6 @@
 %% params
-nclu = 1000;
-CID_max = [600:100:1200];
+nclu = 3000;
+CID_max = [600 900 1200];
 dset_max = [4:4:55];
 tag_max = 4;
 bases = 3:56;
@@ -18,22 +18,19 @@ for d = 1:length(dset_max)
         fake(:,3,k,d) = fake_dsets;
         for iset = 1:dset_max(d)
             thisSet = (fake_dsets == iset);
-            fake(thisSet,2,k,d) = sort(discretize(randperm(sum(thisSet)),tag_max));
-            for itag = 1:tag_max
-                thisTag = (fake(:,2,k,d) == itag) & thisSet(:);
-                fake(thisTag,1,k,d) = sort(randperm(nclu,sum(thisTag)))';
-            end
+            fake(thisSet,2,k,d) = sort(discretize(randperm(nclu),sum(thisSet)));
+            fake_dsets = sort(discretize(randperm(nclu),dset_max(d)));
         end
         
-        %         % use random pairings
+
         %         fake(:,:,k,d) = [randi(CID_max(k),nclu,1) ...
-        %             randi(dset_max(d),nclu,1) ...
-        %             randi(tag_max,nclu,1)];
+        %                          randi(dset_max(d),nclu,1) ...
+        %                          randi(tag_max,nclu,1)];
     end
 end
 %% test
 % here we pass 'fake' through the mapping for each combination of maximum
-% CID and dset value, for different choice of base, and find when that
+% CID and dset value for difference choice of base, and find when that
 % mapping is unique; then we do the inverse mapping and find when that
 % gives us back the original 'fake' IDs.
 dmntly = zeros(length(bases),length(CID_max),length(dset_max));
@@ -46,7 +43,6 @@ for d = 1:length(dset_max)
         for ii = 1:length(bases)
             foo = wc2id(fake(:,:,k,d),bases(ii));
             dmntly(ii,k,d) = length(unique(foo));
-            
             ba = id2wc(foo,bases(ii));
             invtblty(ii,k,d) = sum(any(ba ~= fake(:,:,k,d)));
             maxval(ii,k,d) = max(foo);

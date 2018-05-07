@@ -41,11 +41,11 @@ y_bl = mod(ind, rows);
 y_bl(y_bl == 0) = rows;
 time_bl = ft(t,:);
 
-stimPositions = cell(1,3);
+stimPositions = cell(1,3);% absolute
 stimTimes = cell(1,3);
-stimPositions{2} = [repmat(y_wh, size(ft,2), 1) repmat(x_wh, size(ft,2), 1)];
+stimPositions{2} = [repmat(y_wh, size(ft,2), 1) repmat(x_wh, size(ft,2), 1)];%white
 stimTimes{2} = reshape(time_wh, [], 1);
-stimPositions{3} = [repmat(y_bl, size(ft,2), 1) repmat(x_bl, size(ft,2), 1)];
+stimPositions{3} = [repmat(y_bl, size(ft,2), 1) repmat(x_bl, size(ft,2), 1)];%black
 stimTimes{3} = reshape(time_bl, [], 1);
 stimTimes{1} = [stimTimes{2}; stimTimes{3}];
 [stimTimes{1}, order] = sort(stimTimes{1}, 'ascend');

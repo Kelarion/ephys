@@ -9,8 +9,8 @@ if nargin <3, algo = 'svd'; end
 switch algo
     case 'eigs' 
         [V, D] = eigs((BD > mean(BD(:)))+0); 
-    case 'svd' % works better, somehow
-        [V, D, ~] = svd(BD);
+    case 'svd' % works better, presumably because squaring the
+        [V, D, ~] = svd(BD); % matrix amplifies block structure?
 end
 
 if nargin<2 || isempty(k)

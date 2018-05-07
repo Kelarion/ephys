@@ -13,7 +13,7 @@ function plot2DTuning(ba,whichVar,bins,pp)
 %   - bins [nBin,1]: time label for each bin
 %   - params (struct): Options with fields:
 %       > majorVar (1 or 2): which variable should go on the y-axis, and be
-%       the outer variable on the PSTH plots. Number is column of whichVar.
+%       the major variable on the PSTH plots. Number is column of whichVar.
 %           Default: 1
 %       > varlabs {var1,var2}: Labels for each column in whichVar
 %           Default: {'Var1,'Var2'}
@@ -29,7 +29,6 @@ function plot2DTuning(ba,whichVar,bins,pp)
 %           [tuningcurve,topMarginal,rightMarginal,meanPSTH,allPSTH]
 %           By default it will make these axes on the current figure.
 %
-% M.A., UCL 2018
 
 % defaults
 whichAx = [];

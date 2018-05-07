@@ -1,4 +1,4 @@
-%% pool everything
+%% params
 localRoot = 'C:\DATA\Spikes\';
 
 overwrite = true;
@@ -14,9 +14,9 @@ ephys_bilateral_db
 
 %%
 for k = 1:length(db)
-    [~,~, alnDir, blockDir, alfDir] = ...
+    [~,~, alnDir, alfDir, blockDir] = ...
         expDirs(db(k).mouse_name,db(k).date,db(k).tags{1},db(k).dataServer);
-    beh = loadALF(alfDir);
+    beh = loadALF(alfDir,'sparseNoise');
     blk = loadBlocks(blockDir,db(k).tlExp,'cw',db(k).cwExp,'pas',db(k).passiveExp);
     
     % behavioral info
@@ -128,7 +128,7 @@ for k = 1:length(db)
         
         load(snname)
         %% select neurons for analysis 
-        inclCells = cluDepth(:) < scTop;  % in the midbrain
+        inclCells = cluDepth(:) < scTop;  % in the sSC
         inclCells = inclCells & cluNspk(:) >= 9000; % with enough spikes
 %         inclCells = inclCells & snrf.neurHasRF(:); % with a visual receptive field
         

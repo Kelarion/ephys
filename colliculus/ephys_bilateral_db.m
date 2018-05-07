@@ -71,3 +71,23 @@ db(n).noiseExp      = 4;
 db(n).passiveExp    = 5;
 db(n).tags          = {'K1','K2','ZO'};
 
+n = n+1;
+db(n).mouse_name    = 'SS088';
+db(n).date          = '2018-02-02';
+db(n).dataServer    = 'main'; % means "zubjects\Subjects"
+db(n).tlExp         = 2; 
+db(n).cwExp         = 3;
+db(n).noiseExp      = 4;
+db(n).passiveExp    = 5;
+db(n).tags          = {'K1','K2','ZO'};
+
+n = n+1;
+db(n).mouse_name    = 'SS088';
+db(n).date          = '2018-02-03';
+db(n).dataServer    = 'main'; % means "zubjects\Subjects"
+db(n).tlExp         = 2; 
+db(n).cwExp         = 3;
+db(n).noiseExp      = 4;
+db(n).passiveExp    = 5;
+db(n).tags          = {'K1','K2'};
+

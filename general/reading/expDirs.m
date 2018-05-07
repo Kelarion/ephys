@@ -1,5 +1,5 @@
-function [dsetFolders, dataDir, alnDir, blkDir, alfDir] = expDirs(mouse,date,tag,whichServer)
-% [dsetFolders, dataDir, alnDir, blkDir, alfDir] = expDirs(mouse,date[,thisTag,whichServer])
+function [dsetFolders, dataDir, alnDir, alfDir, blkDir] = expDirs(mouse,date,tag,whichServer)
+% [dsetFolders, dataDir, alnDir, alfDir, blkDir] = expDirs(mouse,date[,thisTag,whichServer])
 % 
 % returns the default folders and directories for different kinds of data
 

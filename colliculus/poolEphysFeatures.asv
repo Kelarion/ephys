@@ -11,10 +11,10 @@ isi_binsize = 0.001; % seconds
 pspect_binsize = 0.002; % seconds
 ss_fact = 10; % factor for subsampling the spectrum
 % (with our choice of tapers we don't get much frequency
-% resolution anyway, so might as well save space)
-psparams.Fs = 1/pspect_binsize; % further parameters for power spectra
+% resolution anyway)
+psparams.Fs = 1/pspect_binsize; % further parameters for computing power spectra
 psparams.pad = 0;
-psparams.fpass = [0 200];
+psparams.fpass = [1 200];
 psparams.tapers = [7 12];
 psparams.trialave = true;
 
@@ -27,11 +27,11 @@ labs = {'TtP','FWHM','FW3M','Grad(0.06)','Grad(0.4)','Peak/Trough','Capacitative
     'Refractory time','Mean lag','ACG Peakiness','ACG half-width','ACG 2/3-width', ...
     'CV ISI','Mode ISI','Mean rate','Spontaneous rate'};
 ephysFeats = [];    ACGfeats = [];  ISIfeats = [];
-% freqFeats = [];
-ACG = [];           ACG_bins = [];  
-distISI = [];       pxx = [];
+visFeats = [];      freqFeats = [];
+ACG = [];           ACG_bins = [];  distISI = [];
+freq = [];          pxx = [];
 nSpks = [];         Amp = [];       Depth = [];
-allWFs = [];        whichCell = []; %isGood = [];
+allWFs = [];        whichCell = []; isGood = [];
 
 for k = 1:length(db)
     for t = 1:length(db(k).tags), thisTag = db(k).tags{t};
@@ -99,12 +99,9 @@ for k = 1:length(db)
             spontTimes = beh.spontaneous.intervals(diff(beh.spontaneous.intervals,[],2) > 60,:);
             spontTimes = spontTimes - aln.tag2ref(2);
         elseif isfield(beh,'sparseNoise')
-            spontTimes = [max(beh.sparseNoise.times) + 60, max(spks.st)];
-            spontTimes = spontTimes - aln.tag2ref(2);
-        else % assuming all recordings without sparse noise are sylvia's wheel-running expts
-            spontTimes = [min(spks.st) max(spks.st)];
+            spontTimes = max(beh.sparseNoise.times) + 60;
+            spontTimes = spontTimes - aln.tag
         end
-        
         %% load or approximate the dorsal surface of SC
         bfname =[alfDir thisTag '\borders_' thisTag '.tsv'];
         snname = [saveFolder 'sparse_noise_RFs.mat'];
@@ -237,19 +234,19 @@ for k = 1:length(db)
         rMeanSpont = zeros(nClu,1);
         for iCell = 1:nClu
             thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
+            spontst = thesest();
             isi = diff(thesest);
-            spontisi = isi(logical(WithinRanges(thesest(1:end-1),spontTimes)));
             isiBin = 0:isi_binsize:isi_time;
             p = histcounts(isi,isiBin);
             pIsi(iCell,:) = p;
             CVisi(iCell) = std(isi)./mean(isi);
             modeISI(iCell) = mode(isi);
             rMean(iCell) = mean(1./isi);
-            rMeanSpont(iCell) = mean(1./spontisi);
+            rMeanSpont(iCell);
         end
         distISI = [distISI; pIsi];
         if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
-        ISIfeats = [ISIfeats; CVisi modeISI rMean rMeanSpont];
+        ISIfeats = [ISIfeats; CVisi modeISI];
         
         %         %% Visual response
         %         if exist(snname,'file')
@@ -275,7 +272,7 @@ for k = 1:length(db)
         erry10_min = 0:600:(spks.nSampDat/spks.sample_rate);
         for iCell = 1:nClu
             thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
-            [ba,bins] = timestampsToBinned(thesest,erry10_min,pspect_binsize,[0 600]);
+            [~,bins,~,~,~,ba] = psthAndBA(thesest,erry10_min,[0 600],pspect_binsize);
             [S, F, R] = mtspectrumpb(ba',psparams);
             pxx = [pxx; S(1:ss_fact:end)'];
         end

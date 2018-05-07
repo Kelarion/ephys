@@ -1,12 +1,12 @@
-%% ACGS
+%% ACGs
 nw = 1.5;
 figure;
 for ii = 1:length(feats.nSpks)
-    t = feats.ACG_bins;
+    t = feats.ACG_bins(1,:);
     ACG = feats.ACG(ii,:);
     smoth = smooth(ACG,0.02,'loess');
-    
-    subplot(1,2,1)
+
+    subplot(1,3,1)
     plot(t,ACG);
     hold on; 
     plot(t,smooth(ACG,10),'linewidth',3);
@@ -14,22 +14,27 @@ for ii = 1:length(feats.nSpks)
     r_m = mean(ACG);
     plot([t_m t_m],ylim,'--','color','k');
     hold off;
-    title(['Cell: ' num2str(feats.whichCell(ii,1)) ' dset: ' num2str(feats.whichCell(ii,2))])
-    ylabel('Conditional intensity')
+    title(['Cell: ' num2str(feats.whichCell(ii,1)) ' dset: ' num2str(feats.whichCell(ii,3))])
+    ylabel('Conditional intensity (Hz)')
     xlabel('Lag (sec)')
     
-    subplot(1,2,2)
-    [pxx,f] = pmtm(smooth(ACG,5) - mean(ACG(end-50:end)),nw,0:0.01:200,1/mean(diff(feats.ACG_bins)));
-    [pmax, ind] = max(10*log10(pxx));
-    plot(f,10*log10(pxx))
-%     set(gca,'yscale','log')
-    hold on; plot(f([ind ind]),ylim,'--')
+    subplot(1,3,2)
+    plot(feats.F(1:10:end),feats.powerSpectra(ii,1:10:end))
+    [pmax, ind] = max(feats.powerSpectra(ii,:));
+    hold on
+    plot(feats.F,smooth(feats.powerSpectra(ii,:),0.01,'loess'),'linewidth',3)
+    plot(feats.F([ind ind]),ylim,'--')
     hold off
     xlabel('frequency (Hz)')
+    ylabel('power ? (dB???)')
 %     tsp = (1:size(feats.spikeShapes,2))/30000;
 %     spwf = (feats.spikeShapes(ii,:)/range(feats.spikeShapes(ii,:)))*feats.amplitude(ii);
 %     plot(tsp,spwf,'linewidth',2)
-    title([num2str(pmax) 'dB at ' num2str(f(ind)) 'Hz'])
+    title([num2str(pmax) ' at ' num2str(feats.F(ind)) 'Hz'])
+    
+    subplot(1,3,3)
+    plot(feats.spikeShapes(ii,:))
+    title(num2str(feats.amplitude(ii)))
     pause;
 end
 
@@ -66,7 +71,7 @@ for ii = 1:size(feats.features,1)
     pause;
 end
 
-%% return map
+%% return map (joint interval distributions)
 figure; 
 for ii = 1:length(spks.cids)
     myisi = diff(spks.st(spks.clu == spks.cids(ii)));
@@ -76,21 +81,32 @@ for ii = 1:length(spks.cids)
     previsi = previsi*1000;
     subsisi = [myisi(2:2:end); pad];
     subsisi = subsisi(ord)*1000;
-    scatter(previsi,subsisi,'.','markeredgecolor',[0.4 0.4 0.4])
+    subplot(1,2,1)
+    scatter(previsi,subsisi,'.','markeredgecolor',[0.4 0.4 0.4],'markeredgealpha',0.3)
     hold on; set(gca,'xscale','log');set(gca,'yscale','log')
-    title(num2str(spks.cids(ii)))
+    title(['Cell: ' num2str(spks.cids(ii))])
+    ylabel('Next ISI, i.e. 2nd-order')
+    xlabel('ISI (ms)')
     hold off
+    shiftedIsi = [];
+    for tau = 1:40; shiftedIsi = [shiftedIsi myisi(tau:40:end-(41-tau))];end
+    sercor = corrcoef(shiftedIsi);
+    subplot(1,2,2)
+    plot(2:40,sercor(1,2:end))
+    set(gca,'ylim',[-1 1])
+    xlabel('Order')
+    ylabel('Correlation coef')
     pause
 end
 
 %% spikes per event
-nbin = isi_time/isi_binsize;
+nbin = length(feats.ISI_bins);
 thr = 0.006;
 figure
 for iCell = 7:nClu
-    thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
+    thesest = spks.st(spks.clu == spks.clu(iCell));
     isi = diff(thesest);
-    isiBin = 0:isi_binsize:isi_time;
+    isiBin = feats.ISI_bins;
     p = histcounts(isi,isiBin);
     
     burstInds = find(isi<thr);

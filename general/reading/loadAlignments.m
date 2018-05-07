@@ -21,7 +21,7 @@ aln.refTag = alignToRef.name(refInd+[1:2]);
 
 aln.thisTag = thisTag;
 if strcmp(thisTag,aln.refTag)
-    aln.tag2ref = [1 0];
+    aln.tag2ref = [1 0]';
 else
     aln.tag2ref = readNPY([alignFolder sprintf('correct_ephys_%s_to_ephys_%s.npy', ...
         thisTag,aln.refTag)]); % correct from ref ephys to current ephys

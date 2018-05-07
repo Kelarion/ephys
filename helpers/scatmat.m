@@ -2,7 +2,7 @@ function Ax = scatmat(X,ptype,varargin)
 % Ax = scatmat(X,ptype[,Name,Value])
 %
 % Scatter-plot matrix with histograms along the diagonal, with the option
-% to plot density rather than points and specify axis labels.
+% to plot density rather than points and to specify axis labels.
 % 
 % Inputs: 
 %  - X is [nObs,nVar]
@@ -10,7 +10,7 @@ function Ax = scatmat(X,ptype,varargin)
 %  - ptype is either 'scatter' (default) or 'density'
 %  - Specify axes labels as (X,__,'labels', {lab1,lab2,...})
 %  - (for density plot) Specify the number of bins as (X,__,'nbin',val)
-%  - (for scatter plot) Aditional arguments for the 'plotmatrix' function
+%  - (for scatter plot) Aditional arguments for the 'scatter' function
 % Outputs:
 %  - Ax is [nVar,nVar]
 
@@ -32,6 +32,12 @@ if ~isempty(varargin) % parse varargin
     else
         labs = {};
     end
+    if any(contains(nms,'mkr'))
+        include = include | contains(nms,'mkr');
+        marker = rgs{contains(nms,'mkr')};
+    else
+        marker = '.';
+    end
     nExtraArgs = length(varargin) - 2*sum(include);
     extraArgs = cell(nExtraArgs,1);
     extraArgs(1:2:end) = nms(~include);
@@ -39,21 +45,46 @@ if ~isempty(varargin) % parse varargin
 else
     nbin = 15;
     labs = {};
+    marker = '.';
     extraArgs = {};
 end
 
 nVar = size(X,2);
-switch ptype % a bit more flexibility than the 'plotmatrix' function
+switch ptype % more flexibility than the 'plotmatrix' function
     case 'scatter'
-        if isempty(extraArgs)
-            [~,Ax,~,H] = plotmatrix(X);
-        else
-            [~,Ax,~,H] = plotmatrix(X,extraArgs{:});
+%         if isempty(extraArgs)
+%             [S,Ax,~,H] = plotmatrix(X);
+%         else
+%             [S,Ax,~,H] = plotmatrix(X,extraArgs{:});
+%         end
+        j = 1;
+        for row = 1:nVar
+            for col = 1:nVar
+                Ax(row,col) = subtightplot(nVar,nVar,j,[0.005 0.005]);
+                varXlim = [min(X(:,col)) max(X(:,col))];
+                varYlim = [min(X(:,row)) max(X(:,row))];
+                rowCntr = linspace(varXlim(1),varXlim(2),nbin);
+                if row == col
+                    d1 = mean(diff(rowCntr))/2;
+                    histogram(X(:,row),rowCntr-d1,'edgealpha',0);
+                    if row<nVar, Ax(row,col).XTick = []; end
+                    if col>1, Ax(row,col).YTick = []; end
+                    Ax(row,col).XLim = varXlim;
+                else
+                    scatter(X(:,col),X(:,row),marker,extraArgs{:});
+                    
+                    if row<nVar, Ax(row,col).XTick = []; end
+                    if col>1, Ax(row,col).YTick = []; end
+                    Ax(row,col).XLim = varXlim;
+                    Ax(row,col).YLim = varYlim;
+                end
+                j = j+1;
+            end
         end
-        for jj = 1:length(H) % make histograms prettier
-            H(jj).EdgeAlpha = 0;
-            H(jj).FaceColor = 'r';
-        end
+%         for jj = 1:length(H) % make histograms prettier
+%             H(jj).EdgeAlpha = 0;
+%             H(jj).FaceColor = 'r';
+%         end
     case 'density'
         j = 1;
         for row = 1:nVar
