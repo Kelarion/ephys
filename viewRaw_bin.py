@@ -23,11 +23,13 @@ class currentData:
 		
 		print('\nLoading ... ') # first read metadata
 		
+		
 		if 'CAR' in fname:
 			meta = fname[:-8] + '.meta'
 		else:
 			meta = fname[:-4] + '.meta'
-			
+		
+		
 		nChans, fs, prb, filetime, filesize = self.readmeta(binname = self.fname, metaname = meta)
 		if  prb == 'imec': # default parameters for probe types
 			winTime = 0.2
@@ -98,11 +100,11 @@ class currentData:
 	
 		newdat = self.loadbin(self.fname, pos = newpos, leap = self.nSamp, bytesize = self.byteSize)
 		if self.prb == 'imec':
-			ind = self.fname.index('ap')
-			lfname = self.fname[:ind] + 'lf.bin'
-			lfp = self.getleaf(lfname)
+			#ind = self.fname.index('ap')
+			#lfname = self.fname[:ind] + 'lf.bin'
+			#lfp = self.getleaf(lfname)
 	
-			self.raw = np.transpose(newdat) + lfp
+			self.raw = np.transpose(newdat) #+ lfp
 			self.filt = np.transpose(newdat)
 		else:
 			newfilt = np.array(self.getfilts(np.transpose(newdat)))
