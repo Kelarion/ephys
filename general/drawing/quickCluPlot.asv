@@ -2,7 +2,7 @@ function quickCluPlot(spks,CID)
 % quickCluPlot(spks,CID)
 %
 
-thresh = 0.2;
+thresh = 0.3;
 
 gcf;
 subtightplot(4,3,[1 2 3],[],[0.01 0.01],[0.1 0.01])
@@ -34,7 +34,7 @@ hold on
 plotWaveform(wf(inclchans,:),spks.xcoords(inclchans),spks.ycoords(inclchans),20,5,0,'b')
 hold off
 ylabel('Depth from bottom')
-title(sprintf('Cell %d template and amplitude',CID))
+title('Spike template')
 
 
 end

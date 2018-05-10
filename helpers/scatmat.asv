@@ -84,10 +84,6 @@ if ~isempty(labs) % label axes
         xlabel(Ax(nVar,v),labs{v})
     end
 end
-for v = 1:nVar
-    linkaxes(Ax(:,v),'x')
-    linkaxes(Ax(v,setdiff(1:nVar,v)),'y')
-end
 
 end
 
@@ -130,15 +126,13 @@ end
 end
 
 %% helper
-function lims = limsAround(cntr,data) % tried this for more robust limits, but doesn't really help
-% lims = limsAround(cntr,data)
-%
-% make limits aroud data that are centered around cntr
+function lims = limsAround(cntrFunc,data)
 
-lims = [min(data) max(data)];
-[~,movelim] = max(abs(cntr-fliplr(lims))); % flipped for ease of indexing
-d = 2*cntr - (sum(lims));
-lims(movelim) =  lims(movelim) + d;
+cntr = cntrFunc(data);
+[];
+[~,statlim] = min(abs(cntr-[min(data) max(data)]));
+lims() = ;
+
 
 
 end

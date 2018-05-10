@@ -17,21 +17,21 @@ dcm_obj = datacursormode(fig);
 set(dcm_obj,'UpdateFcn',{@myupdatefcn,lab})
 
 %% datatip function
-function txt = myupdatefcn(~,event_obj,Z)
-% Customizes text of data tips
-pos = get(event_obj,'Position');
-
-ind=intersect(Find(X,pos(1),1e-10),Find(Y,pos(2),1e-10));
-if(length(ind)~=1)
-    text='err';
-else
-    text=num2str(Z(ind),4);
-end
-
-txt = {['X: ',num2str(pos(1))],...
-       ['Y: ',num2str(pos(2))],...
-       ['ID: ',text]};
-end
+    function txt = myupdatefcn(~,event_obj,Z)
+        % Customizes text of data tips
+        pos = get(event_obj,'Position');
+        
+        ind=intersect(Find(X,pos(1),1e-10),Find(Y,pos(2),1e-10));
+        if(length(ind)~=1)
+            text='err';
+        else
+            text=num2str(Z(ind),4);
+        end
+        
+        txt = {['X: ',num2str(pos(1))],...
+            ['Y: ',num2str(pos(2))],...
+            ['ID: ',text]};
+    end
 
 end
 

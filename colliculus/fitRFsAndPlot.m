@@ -10,8 +10,9 @@ localRoot = 'C:\DATA\Spikes\';
 
 overwrite = true;
 verbose = true;
+skipPlot = true;
 
-whichModels = {'flat','gauss','DoG','\nabla gauss','\nabla^2 gauss'}; % model labels
+whichModels = {'flat','gauss','DoG','\nabla_x gauss','\nabla^2 gauss'}; % model labels
 clims = 0.98; %th quantile (+/-), proportion of RF within the colorbar limits
 
 init_std = 1.5; % units of 'stixels', for initial conditions of all models
@@ -20,6 +21,7 @@ min_btwn = 2; % stixels; if max and min are closer than this, DoG means start of
 clear db
 ephys_bilateral_db
 
+snrfgf = struct;
 %%
 for k = 1:length(db)
     for t = 1:length(db(k).tags), thisTag = db(k).tags{t};
@@ -84,9 +86,9 @@ for k = 1:length(db)
             lb = [0,min(xPos),0,min(yPos),0,-pi/4];
             ub = [realmax('double'),max(xPos),(max(xPos))/2,max(yPos),(max(yPos))/2,pi/4];
             
-            x0 = [1,xPos(maxX),mean(diff(xPos))*init_std,yPos(maxY),mean(diff(yPos))*init_std,0];
+            x0_gaus = [1,xPos(maxX),mean(diff(xPos))*init_std,yPos(maxY),mean(diff(yPos))*init_std,0];
             
-            [x, gaus_fit] = fit2dGaussRF_mine(xPos, yPos, useRF,@D2GaussFunctionRot,[x0;lb;ub]);
+            [x_gaus, gaus_fit] = fit2dGaussRF_mine(xPos, yPos, useRF,@D2GaussFunctionRot,[x0_gaus;lb;ub]);
             gaus_fit = ((-1)^flipped)*gaus_fit;
             
             % difference-of-gaussians
@@ -101,32 +103,38 @@ for k = 1:length(db)
                 mu_x1 = xPos(maxX); mu_x2 = xPos(minX);
                 mu_y1 = yPos(maxY); mu_y2 = yPos(minY);
             end
-            x0 = [1, mu_x1, mean(diff(xPos))*init_std, mu_y1, mean(diff(yPos))*init_std, ...
+            x0_dg = [1, mu_x1, mean(diff(xPos))*init_std, mu_y1, mean(diff(yPos))*init_std, ...
                 1, mu_x2, mean(diff(xPos))*init_std, mu_y2, mean(diff(yPos))*init_std, 0];
             
-            [x_dg,dg_fit] = fit2dGaussRF_mine(xPos, yPos, useRF, @D2_DoG_unequal_Rot,[x0;lb;ub]);
+            [x_dg,dg_fit] = fit2dGaussRF_mine(xPos, yPos, useRF, @D2_DoG_unequal_Rot,[x0_dg;lb;ub]);
             dg_fit = ((-1)^flipped)*dg_fit;
+            
+            % difference of gaussians (same mean)
+            lb = [0,min(xPos),0,min(yPos),0,0,0,0,-pi/4];
+            ub = [realmax('double'),max(xPos),(max(xPos))/2,max(yPos),(max(yPos))/2, ...
+                realmax('double'),(max(xPos))/2,(max(yPos))/2,pi/4];
+            
+            x0_dg_eq = [1,mu_x1,mean(diff(xPos))*init_std,mu_y1,mean(diff(yPos))*init_std, ...
+                1,mean(diff(xPos))*init_std/1.5,mean(diff(xPos))*init_std/1.5,0];
+            
+            [x_dg_equal,dg_eq_fit] = fit2dGaussRF_mine(xPos, yPos, useRF, @D2_DoG_Rot,[x0_dg_eq;lb;ub]);
             
             % gradient of a gaussian
             lb = [0, min(xPos), 0, min(yPos), 0, -pi]; % they get more flexibility for rotation
             ub = [realmax('double'), max(xPos), (max(xPos))/2, max(yPos), (max(yPos))/2, pi];
             
-            x0 = [1,xPos(maxX),mean(diff(xPos))*init_std,yPos(maxY),mean(diff(yPos))*init_std,pi/2];
+            x0_gg = [1,xPos(maxX),mean(diff(xPos))*init_std,yPos(maxY),mean(diff(yPos))*init_std,pi/2];
 
-            [x_gg,gg_fit] = fit2dGaussRF_mine(xPos, yPos, useRF, @D2_gradGaus_Rot,[x0;lb;ub]);
+            [x_gg,gg_fit] = fit2dGaussRF_mine(xPos, yPos, useRF, @D2_gradGaus_Rot,[x0_gg;lb;ub]);
             gg_fit = ((-1)^flipped)*gg_fit;
             
-            % laplacian of a gaussian
-            lb = [0, min(xPos), min(diff(xPos))/2, min(yPos), min(diff(yPos))/2, -pi/2];
-            ub = [realmax('double'), max(xPos), (max(xPos))/2, max(yPos), (max(yPos))/2, pi/2];
-            
-            x0 = [1,xPos(maxX),mean(diff(xPos))*init_std,yPos(maxY),mean(diff(yPos))*init_std,0];
-            
-            [x_lg,lg_fit] = fit2dGaussRF_mine(xPos, yPos, -useRF, @D2_LoG_Rot,[x0;lb;ub]);
-            lg_fit = ((-1)^flipped)*lg_fit;
             
             % compare to find 'best' model (for now least-squares, no discounting)
-            allmods = {mean(rf(:)), gaus_fit, dg_fit, gg_fit, lg_fit};
+            allmods = {mean(rf(:)), gaus_fit, dg_fit, dg_eq_fit, gg_fit};
+            modparams = {mean(rf(:)), x_gaus, x_dg, x_dg_eq, x_gg};
+            mod_init = {NaN, x0_gaus, x0_dg, x0_dg_eq, x0_gg};
+            mod_fun = {@(x)x, @D2GaussFunctionRot, @D2_DoG_unequal_Rot, @D2_gradGaus_Rot, ...
+               @D2_LoG_Rot};
             
             H0 = norm(rf(:)-mean(rf(:)))^2; % null model (flat distribution)
             errs = [H0, norm(rf(:)-gaus_fit(:))^2, norm(rf(:)-dg_fit(:))^2, ...
@@ -135,6 +143,17 @@ for k = 1:length(db)
             
             resid = rf - allmods{best_model_for_now}; 
             
+            % add to mega structure
+            snrfgf(end+1).rf = rf;
+            snrfgf(end+1).fits = allmods;
+            snrfgf(end+1).parameters = modparams;
+            snrfgf(end+1).x0 = mod_init;
+            snrfgf(end+1).fitFuns = mod_fun;
+            snrfgf(end+1).sqerr = errs;
+            snrfgf(end+1).fitNames = whichModels;
+            
+            %%
+            if skipPlot, continue; end
             %% make plots 
             hold off;
             
@@ -181,12 +200,12 @@ for k = 1:length(db)
             caxis([-q q])
             
             subtightplot(4,3,8,[0.05,0.05]) % model 5 
-            imagesc(xPos,yPos,lg_fit)
+            imagesc(xPos,yPos,dg_eq_fit_fit)
             xticks([]); set(gca,'ydir','normal')
             title(['laplacian of gauss. (||err||^2: ' num2str(errs(5),2) ')'])
 %             hold on; plot([0 0],ylim,'--','color','k')
 %             plot(xlim,[0 0],'--','color','k'); hold off
-            q = abs(quantile(abs(lg_fit(:)),clims));
+            q = abs(quantile(abs(dg_eq_fit_fit(:)),clims));
             caxis([-q q])
             
             subtightplot(4,3,10,[0.05,0.05]) % residuals plot
@@ -221,6 +240,9 @@ for k = 1:length(db)
         close(fig)
         if verbose, disp(['     ... done in ' num2str(toc)]); end
     end
+end
+if ~exist([localRoot 'SC_celltypes\snrfFits.mat'],'file') || overwrite
+    save([localRoot 'SC_celltypes\snrfFits.mat'],'snrfgf')
 end
 if verbose, disp('all done.'); end
 
@@ -273,11 +295,11 @@ if verbose, disp('all done.'); end
 % 
 % [x_gg,gg_fit] = fit2dGaussRF_mine(yPos, xPos, useRF, @D2_gradGaus_Rot,[x0;lb;ub]);
 
-% lb = [0,min(yPos),0,min(xPos),0,-pi/4];
-% ub = [realmax('double'),max(yPos),(max(yPos))^2,max(xPos),(max(xPos))^2,pi/4];
+% lb = [0, min(xPos), min(diff(xPos))/2, min(yPos), min(diff(yPos))/2, -pi/2];
+% ub = [realmax('double'), max(xPos), (max(xPos))/2, max(yPos), (max(yPos))/2, pi/2];
 % 
-% [maxY, maxX] = find(useRF==max(useRF(:)),1);
-% x0 = [1,yPos(maxX),mean(diff(yPos))*2,xPos(maxY),mean(diff(xPos))*2,0];
+% x0_lg = [1,xPos(maxX),mean(diff(xPos))*init_std,yPos(maxY),mean(diff(yPos))*init_std,0];
 % 
-% [x_lg,fit_log] = fit2dGaussRF_mine(yPos, xPos, useRF, @D2_LoG_Rot,[x0;lb;ub]);
+% [x_lg,lg_fit] = fit2dGaussRF_mine(xPos, yPos, -useRF, @D2_LoG_Rot,[x0_lg;lb;ub]);
+% lg_fit = ((-1)^flipped)*lg_fit;
 

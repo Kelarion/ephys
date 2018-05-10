@@ -4,6 +4,7 @@ localRoot = 'C:\DATA\Spikes\';
 overwrite = true;
 verbose = true;
 
+ampThresh = 0.3; % units of maximum amplitude, used to determine channel spread
 acg_time = 1; % seconds
 acg_binsize = 0.0005; % seconds
 isi_time = 1; % seconds
@@ -14,7 +15,7 @@ ss_fact = 10; % factor for subsampling the spectrum
 % resolution anyway, so might as well save space)
 psparams.Fs = 1/pspect_binsize; % further parameters for power spectra
 psparams.pad = 0;
-psparams.fpass = [0 200];
+psparams.fpass = [1 200];
 psparams.tapers = [7 12];
 psparams.trialave = true;
 
@@ -30,19 +31,24 @@ ephysFeats = [];    ACGfeats = [];  ISIfeats = [];
 % freqFeats = [];
 ACG = [];           ACG_bins = [];  
 distISI = [];       pxx = [];
-nSpks = [];         Amp = [];       Depth = [];
+nSpks = [];         Amp = [];       Depth = [];     Spread = [];
 allWFs = [];        whichCell = []; %isGood = [];
 
+if verbose,dispstat('','init');end
 for k = 1:length(db)
     for t = 1:length(db(k).tags), thisTag = db(k).tags{t};
         if verbose
-            disp(['Now: ' db(k).mouse_name ' on ' db(k).date ', ephys_' thisTag])
+            dispstat(['Now: ' db(k).mouse_name ' on ' db(k).date ', ephys_' thisTag],'keepthis','keepprev')
         end
         % load everything for that probe
         [dsetFolders, dataDir, alnDir, alfDir] = ...
             expDirs(db(k).mouse_name,db(k).date,thisTag,db(k).dataServer);
-        if ~isempty(db(k).ksRoot)
-            ksDir = [db(k).ksRoot dsetFolders '\sorting\'];
+        if isfield(db,'ksRoot')
+            if ~isempty(db(k).ksRoot)
+                ksDir = [db(k).ksRoot dsetFolders '\sorting\'];
+            else
+                ksDir = [dataDir '\sorting\'];
+            end
         else
             ksDir = [dataDir '\sorting\'];
         end
@@ -109,7 +115,7 @@ for k = 1:length(db)
         bfname =[alfDir thisTag '\borders_' thisTag '.tsv'];
         snname = [saveFolder 'sparse_noise_RFs.mat'];
         if exist(bfname,'file')
-            if verbose, disp('Reading histology data...'); end
+            if verbose, dispstat('Reading histology data...','timestamp'); end
             bord = readtable(bfname ,'Delimiter','\t', 'FileType', 'text');
             sc = contains(bord.acronym,'SC');
             scupper = bord.upperBorder(sc);
@@ -117,7 +123,7 @@ for k = 1:length(db)
             scTop = max(scupper);
             scBottom = min(sclower);
         elseif exist(snname,'file')
-            if verbose, disp('Estimating SC surface...'); end
+            if verbose, dispstat('Estimating SC surface...','timestamp'); end
             [ctxChan, pagchan] = wheresCortex([dataDir spks.lfp_path],'snrf',snname);
             if isempty(ctxChan)
                 t0 = aln.noise2tl(2) + aln.tl2ref(2) - aln.tag2ref(2);
@@ -130,9 +136,13 @@ for k = 1:length(db)
             end
         elseif exist('aln','var')
             t0 = aln.noise2tl(2) + aln.tl2ref(2) - aln.tag2ref(2);
-            if verbose, disp('Estimating SC surface through LFP correlations...'); end
+            if verbose
+                dispstat('Estimating SC surface through LFP correlations...','timestamp'); 
+            end
             ctxChan = wheresCortex([dataDir spks.lfp_path],'corrs',[t0 t0+400]);
-            if verbose, disp(['   ... I think it''s at channel: ' num2str(ctxChan)]); end
+            if verbose
+                dispstat(['   ... I think it''s at channel: ' num2str(ctxChan)],'timestamp'); 
+            end
             scTop = spks.ycoords(ctxChan);
             scBottom = 0;
         else % if this is the case, what business does this dataset have in the db?
@@ -149,8 +159,10 @@ for k = 1:length(db)
         mesoCluID = spks.cids(mesoCells);
         goodMeso = mesoCells & spks.cgs(:) == 2; % and be labelled as 'good'
         
-        if verbose, disp(['  found ' num2str(sum(mesoCells)) ' cells in midbrain']); end
-        if verbose, disp(['  of which ' num2str(sum(goodMeso)) ' are ''good''']); end
+        if verbose
+            msg = sprintf(' found %d cells in midbrain, of which %d are ''good''',sum(mesoCells),sum(goodMeso));
+            dispstat(msg,'timestamp'); 
+        end
         if ~any(goodMeso), continue; end
         
         nClu = sum(goodMeso);
@@ -158,7 +170,7 @@ for k = 1:length(db)
         mesoSites = cluSites(goodMeso);
         
         % remember, both cluID and cluTemps are zero-indexed!!
-        cluWF = spks.tempsUnW(spks.cluTemps(goodMesoCIDs+1)+1,:,:);
+        cluWF = spks.tempsUnW(spks.cluTemps(goodMesoCIDs+1)+1,:,:); % is (nClu,nSamp,nChan)
         
         % first column is cluster ID, second is tag, third is db index
         % to do: find a better indexing system!
@@ -168,47 +180,47 @@ for k = 1:length(db)
         Depth = [Depth; cluDepth(goodMeso), cluDepth(goodMeso) - scTop, scTop - cluDepth(goodMeso) - scBottom];
         
         %% get waveforms and features
-        if verbose
-            tic;
-            disp('Extracting waveforms ...');
-        end
-        %         gwfparams.dataDir = dataDir; % for getting mean waveforms
-        %         gwfparams.ksDir   = ksDir;     % takes a loooong time
-        %         gwfparams.fileName = spks.dat_path;
-        %         gwfparams.dataType = spks.dtype;
-        %         gwfparams.nCh = spks.n_channels_dat;
-        %         gwfparams.wfWin = [-31 35];
-        %         gwfparams.nWf = 1000;
-        %         gwfparams.spikeTimes = round(stGood*spks.sample_rate);
-        %         gwfparams.spikeClusters = scGood;
-        %         gwfparams.nMaxCh = [1 1];
-        %         gwfparams.maxSite = goodSites;
+        if verbose, dispstat('Getting waveforms and computing some features ...','timestamp'); end
+%                 gwfparams.dataDir = dataDir; % for getting mean waveforms
+%                 gwfparams.ksDir   = ksDir;     % takes a loooong time
+%                 gwfparams.fileName = spks.dat_path;
+%                 gwfparams.dataType = spks.dtype;
+%                 gwfparams.nCh = spks.n_channels_dat;
+%                 gwfparams.wfWin = [-31 35];
+%                 gwfparams.nWf = 1000;
+%                 gwfparams.spikeTimes = round(spks.st*spks.sample_rate);
+%                 gwfparams.spikeClusters = spks.clu;
+%                 gwfparams.nMaxCh = [1 1];
+%                 gwfparams.maxSite = cluSites;
         
-        mainTemplates = zeros(nClu,size(cluWF,2));
+        mainTemplates = zeros(nClu,size(cluWF,2)); % template information
+        numSites = zeros(nClu,1);
         for iCell = 1:nClu, iSite = mesoSites(iCell);
-            mainTemplates(iCell,:) = cluWF(iCell,:,iSite);
+            wf = permute(cluWF(iCell,:,:),[3 2 1]);
+            mainTemplates(iCell,:) = wf(iSite,:);
+            
+            chanAmps = max(wf,[],2)-min(wf, [], 2);
+            onSites = chanAmps>max(chanAmps)*ampThresh;
+%             adjSites = spks.ycoords(onSites);
+            numSites(iCell) = sum(onSites);
         end
         allWFs = [allWFs; mainTemplates];
+        Spread = [Spread; numSites];
         
-        %         wfMainChan = getWaveFormsMA(gwfparams); % mean and first 1000 WFs on max-amplitude channel
-        %         allWF = permute(wfMainChan.waveForms,[4 2 1 3]); % only needs to be 3D
-        %         meanWF = permute(wfMainChan.waveFormsMean,[3 1 2]); % also, makes it easier to plot
-        %         disp([' ... done at ' num2str(toc) ' seconds'])
+%         wfMainChan = getWaveFormsMA(gwfparams); % mean and first 1000 WFs on max-amplitude channel
+%         allWF = permute(wfMainChan.waveForms,[4 2 1 3]); % only needs to be 3D
+%         meanWF = permute(wfMainChan.waveFormsMean,[3 1 2]); % also, makes it easier to plot
+%         disp([' ... done at ' num2str(toc) ' seconds'])
         
         % calculate features on 'good' units
-        if verbose, disp('... and computing some features ...'); end
         sfMeanWF = spikeFeatures(mainTemplates',spks.sample_rate);
-        if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
         
-        save([saveFolder 'spike_feats.mat'],'sfMeanWF')
-        
-        %         TP = [TP; sfMeanWF.TP]; FWXM = [FWXM; sfMeanWF.FWXM]; Grad = [Grad; sfMeanWF.Grad];
-        %         HRatio = [HRatio; sfMeanWF.Amps]; I_cap = [I_cap; sfMeanWF.I_cap];
+%         save([saveFolder 'spike_feats.mat'],'sfMeanWF')
         
         ephysFeats = [ephysFeats; sfMeanWF.TP sfMeanWF.FWXM sfMeanWF.Grad sfMeanWF.Amps sfMeanWF.I_cap];
         
         %% ACG and CCG
-        if verbose, disp('Computing autocorrelations ...'); end
+        if verbose, dispstat('Computing autocorrelations ...','timestamp'); end
         
         nbin = 2000*acg_time;
         dsetACGs = zeros(nClu,nbin + 1);
@@ -220,7 +232,6 @@ for k = 1:length(db)
             dsetACGs(iCell,:) = acg(bins>=0);
             dsetACGbins(iCell,:) = bins(bins>=0);
         end
-        if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
         ACG = [ACG; dsetACGs];
         ACG_bins = [ACG_bins; dsetACGbins];
         
@@ -228,7 +239,7 @@ for k = 1:length(db)
         ACGfeats = [ACGfeats; af.t_ref af.t_mean af.peakiness af.PW2 af.PW3];
         
         %% ISI
-        if verbose, disp('Getting ISI distributions ...'); end
+        if verbose, dispstat('Getting ISI distributions ...','timestamp'); end
         nbin = isi_time/isi_binsize;
         pIsi = nan(nClu,nbin);
         CVisi = zeros(nClu,1);
@@ -237,18 +248,18 @@ for k = 1:length(db)
         rMeanSpont = zeros(nClu,1);
         for iCell = 1:nClu
             thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
-            isi = diff(thesest);
+            thesest = thesest([diff(thesest)>0; true]);
+            isi = diff(thesest);  % throw out double-counted spikes
             spontisi = isi(logical(WithinRanges(thesest(1:end-1),spontTimes)));
             isiBin = 0:isi_binsize:isi_time;
             p = histcounts(isi,isiBin);
             pIsi(iCell,:) = p;
             CVisi(iCell) = std(isi)./mean(isi);
             modeISI(iCell) = mode(isi);
-            rMean(iCell) = mean(1./isi);
-            rMeanSpont(iCell) = mean(1./spontisi);
+            rMean(iCell) = 1./mean(isi);
+            rMeanSpont(iCell) = 1./mean(spontisi);
         end
         distISI = [distISI; pIsi];
-        if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
         ISIfeats = [ISIfeats; CVisi modeISI rMean rMeanSpont];
         
         %         %% Visual response
@@ -270,7 +281,7 @@ for k = 1:length(db)
         %         if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
         
         %% Rhythmicity
-        if verbose, disp('Estimating power spectra ...'); end
+        if verbose, dispstat('Estimating power spectra ...','timestamp'); end
         
         erry10_min = 0:600:(spks.nSampDat/spks.sample_rate);
         for iCell = 1:nClu
@@ -280,8 +291,10 @@ for k = 1:length(db)
             pxx = [pxx; S(1:ss_fact:end)'];
         end
         
-        if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
-        
+        if verbose
+            msg = sprintf(' done (found %d ''good'' units in midbrain)',sum(goodMeso));
+            dispstat(msg,'timestamp'); 
+        end
     end
 end
 
@@ -290,7 +303,7 @@ feats.features = [ephysFeats ACGfeats ISIfeats];
 
 feats.labels = labs;            feats.whichCell = whichCell;
 feats.amplitude = Amp;          feats.nSpks = nSpks;
-feats.depth = Depth;
+feats.depth = Depth;            feats.nChan = Spread;
 feats.ACG = ACG;                feats.ACG_bins = ACG_bins(1,:);
 feats.distISI = distISI;        feats.ISI_bins = isiBin(1:end-1);
 feats.powerSpectra = pxx;       feats.F_bins = F(1:ss_fact:end);
@@ -300,4 +313,4 @@ if ~exist([localRoot 'SC_celltypes\all_ephys_features.mat'],'file') || overwrite
     save([localRoot 'SC_celltypes\all_ephys_features.mat'],'feats')
 end
 
-disp('done.')
+dispstat('done.','keepprev','timestamp','keepthis')

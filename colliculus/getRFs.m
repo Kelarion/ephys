@@ -1,9 +1,10 @@
 localRoot = 'C:\DATA\Spikes\';
-overwrite = true;
+
+overwrite = false;
 verbose = true;
+
 lfp_thresh = 1.2; % threshold response when detecting sSC surface
 z_thresh = 9; % threshold on peak RF Z-score
-
 params.useSVD = true; 
 params.makePlots = false;
 params.fit2Dgauss = false; % we're doing this later anyway
@@ -21,6 +22,7 @@ for k = 1:length(db)
         % load data
         [dsetFolders,dataDir, alnDir, alfDir,blockDir] = ... 
             expDirs(db(k).mouse_name,db(k).date,thisTag,db(k).dataServer);
+        
         if isfield(db,'ksRoot')
             if ~isempty(db(k).ksRoot)
                 ksDir = [db(k).ksRoot dsetFolders '\sorting\'];
@@ -127,16 +129,6 @@ for k = 1:length(db)
         
     end
 end
-
-
-
-
-
-
-
-
-
-
 
 
 

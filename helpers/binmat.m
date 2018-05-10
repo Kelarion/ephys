@@ -12,12 +12,19 @@ elseif noverlap >= bs
 end
 
 nbin = ceil(n/(bs-noverlap));
-% bs = floor(n/nbin) + mod(n,nbin); % bin size
-B = zeros(nbin,n);
-for r = 1:nbin
-   i = (bs - noverlap)*(r-1)+ 1;
-   B(r,i:i+bs-1) = 1;
-end
 
-B = B(:,1:n);
+cols = 1:n;
+rws = repelem(1:nbin,bs);
+rws = rws(1:n);
+
+B = sparse(rws,cols,true,nbin,n); % need to add back support for overlap
+
+% % bs = floor(n/nbin) + mod(n,nbin); % bin size
+% B = zeros(nbin,n);
+% for r = 1:nbin
+%    i = (bs - noverlap)*(r-1)+ 1;
+%    B(r,i:i+bs-1) = 1;
+% end
+% 
+% B = B(:,1:n);
 end
