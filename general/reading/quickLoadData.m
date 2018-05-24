@@ -38,3 +38,6 @@ if any(contains(whatThings,'blocks'))
     blk = loadBlocks(blkDir,db(k).tlExp,'cw',db(k).cwExp,'pas',db(k).passiveExp);
     varargout{n} = blk;
 end
+
+varargout{end+1} = dataDir;
+varargout{end+1} = ksDir;

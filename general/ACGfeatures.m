@@ -19,12 +19,11 @@ upsample_risetime = 5;
 rfp = zeros(nClu,1); % refractoriness
 r_max = zeros(nClu,1); % maximum firing rate
 r_inf = zeros(nClu,1); % asymptotic firing rate
-r_mean = zeros(nClu,1);
 t_mean = zeros(nClu,1); % mean lag
 PW2 = nan(nClu,1); % peak width at half-maximum
 PW3 = nan(nClu,1); % peak width at 2/3-maximum
 for iClu = 1:nClu 
-    acg = ACG(iClu,:); % normalise
+    acg = ACG(iClu,:); 
     if size(ACG_bins,1) == 1 
         t = ACG_bins;
     else
@@ -35,7 +34,7 @@ for iClu = 1:nClu
     t100 = t <= 0.1;
     
     acg_avg = smooth(acg,10);
-    acg_smooth = smooth(acg,0.02,'loess');
+%     acg_smooth = smooth(acg,0.02,'loess');
     
     t_mean(iClu) = dot(acg(t100),t(t100))/sum(acg(t100));
     
@@ -45,19 +44,13 @@ for iClu = 1:nClu
         rfp(iClu) = NaN; 
         r_max(iClu) = NaN; 
         r_inf(iClu) = NaN;
-        r_mean(iClu) = NaN;
         t_mean(iClu) = NaN;
         continue
     end
-    if tpk >= th/2
-        r_max(iClu) = mean(acg_avg(1:th)); % if the peak is too late, assume it's not real
-    else
-        r_max(iClu) = mean(acg(tpk-1:tpk+1));
-    end
-    r_inf(iClu) = mean(acg_avg(end-50:end));
-    r_mean(iClu) = mean(acg_avg);
+    r_max(iClu) = mean(acg(tpk-1:tpk+1)); 
+    r_inf(iClu) = mean(acg(end-50:end));
     
-    if r_max(iClu) > 1.8*r_inf(iClu)
+    if r_max(iClu) > 1.8*r_inf(iClu) % width of ACG peak
         tq = interp1(1:length(t),t,1:(1/upsample_peak):th);
         d = find(tq == t(tpk));
         acg_interp = interp1(t,acg_avg,tq);
@@ -70,6 +63,7 @@ for iClu = 1:nClu
         PW3(iClu) = (t2+d - t1)/(upsample_peak*Fs);
     end
     
+    % rise time
     tq = interp1(1:length(t),t,1:(1/upsample_risetime):tpk);
     acg_interp = interp1(t,acg,tq);
     thm = find(acg_interp >= 0.85*r_max(iClu),1,'first');
@@ -77,10 +71,11 @@ for iClu = 1:nClu
     
 end
 
-af.t_ref = rfp;     af.t_mean = t_mean;
-af.peakiness = r_max./r_inf;
-af.r_mean = r_mean; 
-af.PW2 = PW2;       af.PW3 = PW3;
+af.t_ref = rfp;     
+af.t_mean = t_mean;
+af.peakiness = r_max./(r_inf+0.001);
+af.PW2 = PW2;       
+af.PW3 = PW3;
 
 end
 

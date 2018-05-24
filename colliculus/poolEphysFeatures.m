@@ -1,8 +1,12 @@
-%% params
+%% parameters
 localRoot = 'C:\DATA\Spikes\';
 
 overwrite = true;
 verbose = true;
+getPSD = false; % get power spectra?
+
+permissibleCG = [1 2]; % what kinds of cells to include
+saveName = 'MUA_ephys_features.mat'; % what to call the output
 
 ampThresh = 0.3; % units of maximum amplitude, used to determine channel spread
 acg_time = 1; % seconds
@@ -19,14 +23,14 @@ psparams.fpass = [1 200];
 psparams.tapers = [7 12];
 psparams.trialave = true;
 
-clear db
-ephys_celltypes_db
-
 %% run
+clear db
+ephys_RF_db
+
 feats = struct;
 labs = {'TtP','FWHM','FW3M','Grad(0.06)','Grad(0.4)','Peak/Trough','Capacitative', ...
     'Refractory time','Mean lag','ACG Peakiness','ACG half-width','ACG 2/3-width', ...
-    'CV ISI','Mode ISI','Mean rate','Spontaneous rate'};
+    'CV ISI','Mode ISI','HDS ISI','Mean rate','Spontaneous rate'};
 ephysFeats = [];    ACGfeats = [];  ISIfeats = [];
 % freqFeats = [];
 ACG = [];           ACG_bins = [];  
@@ -81,17 +85,17 @@ for k = 1:length(db)
         end
         
         %  optogenetics information
-        if db(k).laserExp % we want to exclude laser trials from ACG and CCG analysis?
-            lasOnset = []; lasOffset = []; % or not, you decide
-            
-            for ii = db(k).laserExp
-                onsetName = sprintf('mpep_%d_onsets_in_timeline_%d.npy',ii,db(k).tlExp);
-                offsetName = sprintf('mpep_%d_offsets_in_timeline_%d.npy',ii,db(k).tlExp);
-                lasOnset = [lasOnset; readNPY([alnDir onsetName])];
-                lasOffset = [lasOffset; readNPY([alnDir offsetName])];
-            end
-            laserTimes = [lasOnset lasOffset];
-        end
+%         if db(k).laserExp % we want to exclude laser trials from ACG and CCG analysis?
+%             lasOnset = []; lasOffset = []; % or not, you decide
+%             
+%             for ii = db(k).laserExp
+%                 onsetName = sprintf('mpep_%d_onsets_in_timeline_%d.npy',ii,db(k).tlExp);
+%                 offsetName = sprintf('mpep_%d_offsets_in_timeline_%d.npy',ii,db(k).tlExp);
+%                 lasOnset = [lasOnset; readNPY([alnDir onsetName])];
+%                 lasOffset = [lasOffset; readNPY([alnDir offsetName])];
+%             end
+%             laserTimes = [lasOnset lasOffset];
+%         end
         
         %         lasIndex = times2frames(laserTimes,tl.rawDAQTimestamps); % convert to logical indexing
         %
@@ -117,7 +121,7 @@ for k = 1:length(db)
         if exist(bfname,'file')
             if verbose, dispstat('Reading histology data...','timestamp'); end
             bord = readtable(bfname ,'Delimiter','\t', 'FileType', 'text');
-            sc = contains(bord.acronym,'SC');
+            sc = contains(bord.acronym,'SCs');
             scupper = bord.upperBorder(sc);
             sclower = bord.lowerBorder(sc);
             scTop = max(scupper);
@@ -157,7 +161,7 @@ for k = 1:length(db)
         mesoCells = mesoCells & cluNspk(:) >= 800; % got to have spikes
         
         mesoCluID = spks.cids(mesoCells);
-        goodMeso = mesoCells & spks.cgs(:) == 2; % and be labelled as 'good'
+        goodMeso = mesoCells & ismember(spks.cgs(:),permissibleCG); 
         
         if verbose
             msg = sprintf(' found %d cells in midbrain, of which %d are ''good''',sum(mesoCells),sum(goodMeso));
@@ -169,7 +173,7 @@ for k = 1:length(db)
         goodMesoCIDs = spks.cids(goodMeso); % these are the cells we use
         mesoSites = cluSites(goodMeso);
         
-        % remember, both cluID and cluTemps are zero-indexed!!
+        % remember, both cluID and cluTemps are zero-indexed
         cluWF = spks.tempsUnW(spks.cluTemps(goodMesoCIDs+1)+1,:,:); % is (nClu,nSamp,nChan)
         
         % first column is cluster ID, second is tag, third is db index
@@ -177,7 +181,7 @@ for k = 1:length(db)
         whichCell = [whichCell; goodMesoCIDs(:) ones(nClu,1)*t ones(nClu,1)*k];
         nSpks = [nSpks; cluNspk(goodMeso)];
         Amp = [Amp; cluAmps(goodMeso)];
-        Depth = [Depth; cluDepth(goodMeso), cluDepth(goodMeso) - scTop, scTop - cluDepth(goodMeso) - scBottom];
+        Depth = [Depth; cluDepth(goodMeso), cluDepth(goodMeso) - scTop, cluDepth(goodMeso) - scBottom];
         
         %% get waveforms and features
         if verbose, dispstat('Getting waveforms and computing some features ...','timestamp'); end
@@ -244,23 +248,28 @@ for k = 1:length(db)
         pIsi = nan(nClu,nbin);
         CVisi = zeros(nClu,1);
         modeISI = zeros(nClu,1);
+        HDSisi = zeros(nClu,1);
+%         BCisi = zeros(nClu,1);
         rMean = zeros(nClu,1);
         rMeanSpont = zeros(nClu,1);
         for iCell = 1:nClu
             thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
-            thesest = thesest([diff(thesest)>0; true]);
-            isi = diff(thesest);  % throw out double-counted spikes
+            thesest = thesest([diff(thesest)>0; true]); % throw out double-counted spikes
+            isi = diff(thesest);  
             spontisi = isi(logical(WithinRanges(thesest(1:end-1),spontTimes)));
             isiBin = 0:isi_binsize:isi_time;
             p = histcounts(isi,isiBin);
+            
             pIsi(iCell,:) = p;
             CVisi(iCell) = std(isi)./mean(isi);
             modeISI(iCell) = mode(isi);
+            HDSisi(iCell) = HartigansDipTest(log10(isi));
+%             BCisi(iCell) = (skewness(isi,0).^2 + 1)/kurtosis(isi);
             rMean(iCell) = 1./mean(isi);
             rMeanSpont(iCell) = 1./mean(spontisi);
         end
         distISI = [distISI; pIsi];
-        ISIfeats = [ISIfeats; CVisi modeISI rMean rMeanSpont];
+        ISIfeats = [ISIfeats; CVisi modeISI HDSisi rMean rMeanSpont];
         
         %         %% Visual response
         %         if exist(snname,'file')
@@ -281,18 +290,21 @@ for k = 1:length(db)
         %         if verbose, disp([' ... done at ' num2str(toc) ' seconds']); end
         
         %% Rhythmicity
-        if verbose, dispstat('Estimating power spectra ...','timestamp'); end
-        
-        erry10_min = 0:600:(spks.nSampDat/spks.sample_rate);
-        for iCell = 1:nClu
-            thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
-            [ba,bins] = timestampsToBinned(thesest,erry10_min,pspect_binsize,[0 600]);
-            [S, F, R] = mtspectrumpb(ba',psparams);
-            pxx = [pxx; S(1:ss_fact:end)'];
+        if getPSD
+            if verbose, dispstat('Estimating power spectra ...','timestamp'); end
+            
+            erry10_min = 0:600:(spks.nSampDat/spks.sample_rate);
+            for iCell = 1:nClu
+                thesest = spks.st(spks.clu == goodMesoCIDs(iCell));
+                [ba,bins] = timestampsToBinned(thesest,erry10_min,pspect_binsize,[0 600]);
+                [S, F, R] = mtspectrumpb(ba',psparams);
+                pxx = [pxx; S(1:ss_fact:end)'];
+            end
         end
         
+        %% 
         if verbose
-            msg = sprintf(' done (found %d ''good'' units in midbrain)',sum(goodMeso));
+            msg = sprintf(' done, found %d units in midbrain',sum(goodMeso));
             dispstat(msg,'timestamp'); 
         end
     end
@@ -306,11 +318,15 @@ feats.amplitude = Amp;          feats.nSpks = nSpks;
 feats.depth = Depth;            feats.nChan = Spread;
 feats.ACG = ACG;                feats.ACG_bins = ACG_bins(1,:);
 feats.distISI = distISI;        feats.ISI_bins = isiBin(1:end-1);
-feats.powerSpectra = pxx;       feats.F_bins = F(1:ss_fact:end);
+if getPSD
+    feats.powerSpectra = pxx;       feats.F_bins = F(1:ss_fact:end);
+else
+    feats.powerSpectra = [];       feats.F_bins = [];
+end
 feats.spikeShapes = allWFs;     feats.datasets = db;
 
-if ~exist([localRoot 'SC_celltypes\all_ephys_features.mat'],'file') || overwrite
-    save([localRoot 'SC_celltypes\all_ephys_features.mat'],'feats')
+if ~exist([localRoot '\SC_popstructs\' saveName],'file') || overwrite
+    save([localRoot '\SC_popstructs\' saveName],'feats')
 end
 
 dispstat('done.','keepprev','timestamp','keepthis')

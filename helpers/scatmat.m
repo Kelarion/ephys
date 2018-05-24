@@ -66,8 +66,11 @@ switch ptype
                     Ax(row,col).XLim = varXlim;
                 else
                     [n, c] = hist3(X(:,[col, row]),{rowCntr colCntr});
-                    imagesc(c{1},flipud(c{2}(:)),flipud(n')); colormap gray;
+                    imagesc(c{1},flipud(c{2}(:)),flipud(n')); 
+                    colormap gray;
                     set(Ax(row,col),'Ydir','normal')
+                    q = abs(quantile(n(:),0.85));
+                    caxis([0 q])
                     
                     if row<nVar, Ax(row,col).XTick = []; end
                     if col>1, Ax(row,col).YTick = []; end
@@ -76,7 +79,7 @@ switch ptype
             end
         end
     otherwise
-        error('Please supply a valid plot type, or don''t supply one at all')
+        error(['''' ptype ''' not a valid plot type. Please supply a valid plot type, or don''t supply one at all'])
 end
 if ~isempty(labs) % label axes
     for v = 1:nVar
@@ -88,6 +91,7 @@ for v = 1:nVar
     linkaxes(Ax(:,v),'x')
     linkaxes(Ax(v,setdiff(1:nVar,v)),'y')
 end
+linkaxes(Ax(1,2:end),'y')
 
 end
 

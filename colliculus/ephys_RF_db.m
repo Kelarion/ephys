@@ -1,66 +1,6 @@
 n = 0;
 
 n = n+1;
-db(n).mouse_name    = 'SS072';
-db(n).date          = '2016-12-02';
-db(n).dataServer    = 'old'; % means "ZSERVER\Data\Subjects"
-db(n).ksRoot        = 'C:\DATA\Spikes\';
-db(n).tlExp         = 1; % which expNum is timeline listed under? (usually 1) 
-db(n).noiseExp      = 3;
-db(n).laserExp      = 2; % which experiments have laser? 
-db(n).tags          = {'SC'};
-
-n = n+1;
-db(n).mouse_name    = 'SS072';
-db(n).date          = '2016-12-04';
-db(n).dataServer    = 'old'; % means "ZSERVER\Data\Subjects"
-db(n).ksRoot        = 'C:\DATA\Spikes\';
-db(n).tlExp         = 1; 
-db(n).noiseExp      = 3;
-db(n).laserExp      = [2 4]; % which experiments have laser?
-db(n).tags          = {'SC'};
-
-n = n+1;
-db(n).mouse_name    = 'SS074';
-db(n).date          = '2017-01-04';
-db(n).dataServer    = 'old'; % means "ZSERVER\Data\Subjects"
-db(n).ksRoot        = 'C:\DATA\Spikes\';
-db(n).tlExp         = 2; 
-db(n).noiseExp      = 4;
-db(n).laserExp      = 3; % which experiments have laser? 
-db(n).tags          = {'SC'};
-
-n = n+1;
-db(n).mouse_name    = 'SS074';
-db(n).date          = '2017-01-05';
-db(n).dataServer    = 'old'; % means "ZSERVER\Data\Subjects"
-db(n).ksRoot        = 'C:\DATA\Spikes\';
-db(n).tlExp         = 2; 
-db(n).noiseExp      = 4;
-db(n).laserExp      = 3; % which experiments have laser? 
-db(n).tags          = {'SC'};
-
-n = n+1;
-db(n).mouse_name    = 'Noam';
-db(n).date          = '2016-12-07';
-db(n).dataServer    = 'old'; % means "ZSERVER\Data\Subjects"
-db(n).ksRoot        = 'C:\DATA\Spikes\';
-db(n).tlExp         = 1; 
-db(n).noiseExp      = 4;
-db(n).laserExp      = [2 3]; % which experiments have laser? 
-db(n).tags          = {'SC'};
-
-n = n+1;
-db(n).mouse_name    = 'Noam';
-db(n).date          = '2016-12-11';
-db(n).dataServer    = 'old'; % means "ZSERVER\Data\Subjects"
-db(n).ksRoot        = 'C:\DATA\Spikes\';
-db(n).tlExp         = 1; 
-db(n).noiseExp      = 3;
-db(n).laserExp      = [2 5]; % which experiments have laser? 
-db(n).tags          = {'SC'};
-
-n = n+1;
 db(n).mouse_name    = 'SS087';
 db(n).date          = '2017-12-12';
 db(n).dataServer    = 'main'; % means "zubjects\Subjects"
@@ -69,6 +9,7 @@ db(n).cwExp         = 3;
 db(n).noiseExp      = 4;
 db(n).passiveExp    = 5;
 db(n).tags          = {'ZO' 'K2'};
+% db(n).tagLocation   = {'' ''}; % either LA, LP, RA or RP 
 
 n = n+1;
 db(n).mouse_name    = 'SS087';
@@ -150,6 +91,7 @@ db(n).noiseExp      = 4;
 db(n).passiveExp    = 5;
 db(n).tags          = {'K1','K2','K3','ZO'};
 
+
 %% add nick's to the pile
 r = findRecsWithArea('SCs');
 q = findRecsWithArea('SCm');
@@ -164,7 +106,7 @@ for n = 1:length(r)
         db(end).tlExp = q(j).tlExpNum;
         db(end).cwExp = q(j).cwExpNum;
         db(end).passiveExp = q(j).passiveExpNum;
-        db(end).noiseExp = q(j).noiseExpNum;
+%         db(end).noiseExp = q(j).noiseExpNum;
         db(end).tags = {q(j).tag};
     end
 end

@@ -23,18 +23,18 @@ ephys_bilateral_db
 % essence a conversion of base; for some reason, if the base is one greater
 % than the maximum value of dset, it guarantees this mapping is invertible.
 % (see testhash.m). Maybe we can just use it on [CID,tag]?
-b = length(dB) + 1;
+b = length(db) + 1;
 wc2id = @(WC) WC*[b^2 b^1 b^0]'; % from [CID,tag,dset] -> unique CID
 id2wc = @(id) [floor(id/(b^2)) mod(floor(id/b),b) mod(id,b)]; % inverse
 
 %%
-TotCorrs = cell(1,4);	
-SigCorrs = cell(1,4);	
+TotCorrs = cell(1,4);
+SigCorrs = cell(1,4);
 XCorrs = cell(1,4);
 for k = 1:length(db)
     [~,~, alnDir, alfDir, blockDir] = ...
         expDirs(db(k).mouse_name,db(k).date,db(k).tags{1},db(k).dataServer);
-    beh = loadALF(alfDir,'spontaneous');
+    beh = loadALF(alfDir,'spontaneous','sparseNoise');
     blk = loadBlocks(blockDir,db(k).tlExp,'cw',db(k).cwExp,'pas',db(k).passiveExp);
     
     % behavioral info

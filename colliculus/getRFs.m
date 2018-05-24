@@ -112,7 +112,7 @@ for k = 1:length(db)
         hasRF = zeros(nCells,1);
         for iCell = 1:nCells
             theseSpikes = spks.st(spks.isNeuron & spks.clu == spks.cids(iCell));
-            [rfmap{iCell}, rfstats(iCell), ~] = sparseNoiseRF(theseSpikes, ... 
+            [rfmap{iCell}, rfstats(iCell), ~] = sparseNoiseRF_MA(theseSpikes, ... 
                 snrf.stimTimes_local,snrf.stimPosition,params);
             if rfstats(iCell).peakZscore > z_thresh
                 hasRF(iCell) = true;

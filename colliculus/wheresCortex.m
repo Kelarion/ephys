@@ -1,5 +1,5 @@
 function [scTop, scBottom] = wheresCortex(lfpName,algo,algoInfo)
-% [scTop, scBottom] = wheresCortex(lfpName,noiseInds,algo[,algoInfo])
+% [scTop, scBottom] = wheresCortex(lfpName,algo[,algoInfo])
 % 
 % Finds the approximate border of cortex and SC based on the LFP. Assumes
 % this is a Neuropixels option 3 or 1 probe.
@@ -26,16 +26,16 @@ dudChans = [37    76   113   152   189   228   265   304   341   380]; %internal
 q = 1:384;
 liveChans = q(~ismember(q,dudChans));
 
-lfpnamestruct = dir(lfpName);
-dataTypeNBytes = numel(typecast(cast(0, 'int16'), 'uint8')); % determine number of bytes per sample
-
-nSampLFP = lfpnamestruct.bytes/(385*dataTypeNBytes);
-lfpFs = 2500; % assumption for imec
-
-lfpFile = memmapfile(lfpName, 'Format', {'int16', [385 nSampLFP], 'x'});
-
 switch algo
     case 'corrs'
+        lfpnamestruct = dir(lfpName);
+        dataTypeNBytes = numel(typecast(cast(0, 'int16'), 'uint8')); % determine number of bytes per sample
+        
+        nSampLFP = lfpnamestruct.bytes/(385*dataTypeNBytes);
+        lfpFs = 2500; % assumption for imec
+        
+        lfpFile = memmapfile(lfpName, 'Format', {'int16', [385 nSampLFP], 'x'});
+        
         t0 = round(algoInfo(1)*lfpFs);
         t_max = algoInfo(1)+maxTimeForCorr;
         tfin = (nSampLFP-1)/lfpFs;

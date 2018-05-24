@@ -17,8 +17,8 @@ ax(4) =subtightplot(5,9,[28 29 30 37 38 39],[0.15 0.01]);
 imagesc(snrf.XPos,snrf.YPos,snrf.neur_rfmap{snrf.neur_ID == inclCID(iclu)})
 set(gca,'ydir','normal')
 hold on;
-plot(cwSigma*cos(0:0.1:2*pi) + cwXPos,cwSigma*sin(0:0.1:2*pi) + cwYPos,'--','color','w','linewidth',2)
-plot(cwSigma*cos(0:0.1:2*pi) - cwXPos,cwSigma*sin(0:0.1:2*pi) + cwYPos,'--','color','w','linewidth',2)
+plot(1.5*cwSigma*cos(-1:0.1:2*pi) + cwXPos,1.5*cwSigma*sin(-1:0.1:2*pi) + cwYPos,'-k','linewidth',2)
+plot(1.5*cwSigma*cos(-1:0.1:2*pi) - cwXPos,1.5*cwSigma*sin(-1:0.1:2*pi) + cwYPos,'-k','linewidth',2)
 title('Sparse noise RF')
 hold off;
 

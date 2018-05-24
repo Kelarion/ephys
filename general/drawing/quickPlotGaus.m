@@ -10,4 +10,4 @@ xdata(:,:,2) = X;
 
 F = modfun(x,xdata);
 gcf;
-surf(X,Y,F,'edgecolor','none')
+imagesc(faux,-fauy,F')

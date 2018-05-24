@@ -89,5 +89,5 @@ db(n).tlExp         = 2;
 db(n).cwExp         = 3;
 db(n).noiseExp      = 4;
 db(n).passiveExp    = 5;
-db(n).tags          = {'K1','K2'};
+db(n).tags          = {'K1','K2','K3','ZO'};
 

@@ -16,7 +16,7 @@ ephys_bilateral_db
 for k = 1:length(db)
     [~,~, alnDir, alfDir, blockDir] = ...
         expDirs(db(k).mouse_name,db(k).date,db(k).tags{1},db(k).dataServer);
-    beh = loadALF(alfDir,'sparseNoise');
+    beh = loadALF(alfDir,'sparseNoise','wheelMoves');
     blk = loadBlocks(blockDir,db(k).tlExp,'cw',db(k).cwExp,'pas',db(k).passiveExp);
     
     % behavioral info
