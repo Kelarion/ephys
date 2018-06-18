@@ -126,14 +126,14 @@ errorbar(marg2,nanmean(resp(p1,p2),1),nanmean(errs(p1,p2),1),'-o')
 xticks(marg2,sort(p2));
 xticklabels(marg2,[])
 xlim(marg2,[0.5,nVar2+0.5])
-ylabel(marg2,'Mean FR (Hz)')
+ylabel(marg2,'Mean FR (Sp/sec)')
     % right marginal
 errorbar(marg1,nanmean(resp(p1,p2),2),(p1),[],[],...
     nanmean(errs(p1,p2),2),nanmean(errs(p1,p2),2),'-o')
 yticks(marg1,sort(p1))
 yticklabels(marg1,[])
 ylim(marg1,[0.5,nVar1+0.5])
-xlabel(marg1,'Mean FR (Hz)')
+xlabel(marg1,'Mean FR (Sp/sec)')
     % make axes equal
 marglims = [min([ylim(marg2) xlim(marg1)]),max([ylim(marg2) xlim(marg1)])];
 marg2.YLim = marglims;

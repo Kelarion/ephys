@@ -1,5 +1,5 @@
-function plotLinked(sig1, sig2, blackBackground)
-% plotLinked(sig1, sig2, blackBackground)
+function viewTogether(sig1, sig2, blackBackground)
+% viewTogether(sig1, sig2, blackBackground)
 %
 % Don't use this function programmatically.
 

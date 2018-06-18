@@ -12,12 +12,12 @@ for n = 1:length(r)
     if any(j)
         db(ii).mouse_name = q(j).mouseName;
         db(ii).date = q(j).thisDate;
-        db(ii).dataServer = q(j).whichServer;
+%         db(ii).dataServer = q(j).whichServer;
         db(ii).tlExp = q(j).tlExpNum;
         db(ii).cwExp = q(j).cwExpNum;
         db(ii).passiveExp = q(j).passiveExpNum;
         db(ii).noiseExp = q(j).noiseExpNum;
-        db(ii).ksRoot = [p.([q(j).whichServer 'Repository']) '\'];
+        db(ii).ksRoot = [p.(['oldRepository']) '\'];
         db(ii).tags = {q(j).tag};
         ii = ii+1;
     end
@@ -31,18 +31,18 @@ for n = 1:length(q)
 end
 
 %%
-inftop = zeros(length(db),1);
-infbot = zeros(length(db),1);
-knowntop = zeros(length(db),1);
-knownbot = zeros(length(db),1);
+inftop = nan(length(db),1);
+infbot = nan(length(db),1);
+knowntop = nan(length(db),1);
+knownbot = nan(length(db),1);
 knownmid = nan(length(db),1);
 for k = 1:length(db)
     for t = 1:length(db(k).tags), thisTag = db(k).tags{t};
         % load everything for that probe
         dsetFolders = [db(k).mouse_name '\' db(k).date '\'];
         
-        [~,dataDir, ~, ~, alfDir] = ... 
-            expDirs(db(k).mouse_name,db(k).date,thisTag,db(k).dataServer);
+        [~,dataDir, ~, alfDir] = ... 
+            expDirs(db(k).mouse_name,db(k).date,thisTag,'old');
         ksDir = [dataDir '\sorting\'];
         spks = loadNeuralData(ksDir);
         
@@ -85,26 +85,26 @@ end
 figure('units','normalized','position',[0.1234 0.4241 0.8333 0.3852]);
 subplot(1,3,1)
 scatter(knowntop,inftop,'filled')
-text(knowntop(visrecs)+10,inftop(visrecs)+10,'V1 recording','fontsize',13)
-samelims; axis manual; grid on
-hold on; plot(xlim,xlim,'--')
+text(knowntop(visrecs)+10,inftop(visrecs)+10,'V1','fontsize',11)
+samelims; axis square;
+hold on; plot(xlim,xlim,'--k')
 ylabel('inferred border (um)')
 xlabel('known border (um)')
 title('SC surface')
 
 subplot(1,3,2)
 scatter(knownmid,infbot,'filled')
-text(knownmid(visrecs)+10,infbot(visrecs)+10,'V1 recording','fontsize',13)
-samelims; axis manual; grid on
-hold on; plot(xlim,xlim,'--')
+text(knownmid(visrecs)+10,infbot(visrecs)+10,'V1','fontsize',11)
+samelims; axis square;
+hold on; plot(xlim,xlim,'--k')
 xlabel('known border (um)')
 title('SCs/SCm')
 
 subplot(1,3,3)
 scatter(knownbot,infbot,'filled')
-text(knownbot(visrecs)+10,infbot(visrecs)+10,'V1 recording','fontsize',13)
-samelims; axis manual; grid on
-hold on; plot(xlim,xlim,'--')
+text(knownbot(visrecs)+10,infbot(visrecs)+10,'V1','fontsize',11)
+samelims; axis square;
+hold on; plot(xlim,xlim,'--k')
 xlabel('known border (um)')
 title('SCm/other midbrain')
 

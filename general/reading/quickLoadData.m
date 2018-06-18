@@ -1,12 +1,12 @@
 function varargout = quickLoadData(db,whichDSet,whatThings)
 % thing = quickLoadData(db,whichDSet,whatThings)
-%
 % 
+% whichDSet is of the form [tagNumber dsetNumber]
 
 k = whichDSet(end);
 thisTag = db(k).tags{whichDSet(end-1)};
 
-[dsetFolders, dataDir, alnDir, blkDir, alfDir] = ...
+[dsetFolders,dataDir,alnDir,alfDir,blkDir] = ...
     expDirs(db(k).mouse_name,db(k).date,thisTag,db(k).dataServer);
 if isfield(db,'ksRoot')
     if ~isempty(db(k).ksRoot)

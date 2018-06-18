@@ -134,7 +134,8 @@ end
 end
 
 %% helper
-function lims = limsAround(cntr,data) % tried this for more robust limits, but doesn't really help
+% tried this for more robust limit selection, but doesn't really help
+function lims = limsAround(cntr,data) 
 % lims = limsAround(cntr,data)
 %
 % make limits aroud data that are centered around cntr

@@ -1,10 +1,10 @@
 function [timeCourses, rfMaps, channels] = snrfLFP(lfpFile,stimPositions,stimTimes,useChans,computeWin)
-% [timeCourses, rfMaps] = snrfLFP(lfpFile,stimPosition,stimTimes[,useChans,computeWin])
+% [timeCourses, rfMaps, channels] = snrfLFP(lfpFile,stimPosition,stimTimes[,useChans,computeWin])
 % 
 % lfpFile is a memmap of the LFP file. make sure 'stimTimes' is in the
 % timeframe of this specific probe.
 %
-% code mainly by Nick Steinmetz 
+% modified from rfOnlineSigLF (in from_Nick folder)
 
 if nargin<6 
     computeWin = [-0.05 0.2];

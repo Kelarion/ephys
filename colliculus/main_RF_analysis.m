@@ -93,8 +93,8 @@ grplabs = {'Single gaussian','Center-suppressive'};
 % grplabs = {'Unilateral','Bilateral'};
 % grps = [chosenCells ~chosenCells];
 % grps = [sens mot othr];
-grps = [gausBest nongausBest];
-% grps = [unilatBest bilatBest] ;
+% grps = [gausBest nongausBest];
+grps = [unilatBest bilatBest] ;
 grps = grps(ismember(cfid,muaid),:);
 % quantity = (R2(:,4)- max(R2(:,1:3),[],2));
 % quantity = (max(R2(:,2:3),[],2) - R2(:,1));
@@ -107,8 +107,10 @@ e = linspace(quantile(quantity(foo),0.0001),quantile(quantity(foo),0.99),34);
 
 subplot(2,1,2); hold on
 alln = zeros(size(grps,2),length(e)-1);
+kyu = {};
 for ii = 1:size(grps,2)
     dis = grps(:,ii);
+    kyu{ii} =quantity(dis);
      histogram(quantity(dis),e,'normalization','probability','edgecolor','none'); % ,'DisplayStyle','stairs','linewidth',2
 %     n = histcounts(quantity(dis),e);
 %     alln(ii,:) = n/sum(dis);
@@ -206,8 +208,8 @@ grid off
 
 %% LDA (and plots)
 useThese = ismember(muaid,cfid) & goodclu & inBoth;
-% grplabs = {'Single gaussian','Center-suppressive'};
-grplabs = {'Unilateral','Bilateral'};
+grplabs = {'Single gaussian','Center-suppressive'};
+% grplabs = {'Unilateral','Bilateral'};
 % grp1 = ismember(muaid,cfid(gausBest));
 % grp2 = ismember(muaid,cfid(nongausBest));
 grp1 = ismember(muaid,cfid(unilatBest));
@@ -254,24 +256,27 @@ L_2d = X_vis*pea(:,1);
 grp1 = ismember(muaid,cfid(nongausBest)) & goodclu;% & ismember(muaid,wc2id(allfeats.whichCell));
 grp2 = ismember(muaid,cfid(gausBest))& goodclu;% & ismember(muaid,wc2id(allfeats.whichCell));
 
-theseACG = [flipud(muafeats.ACG(grp1,:)'); muafeats.ACG(grp1,2:end)';];
-% theseACG = [flipud(muafeats.ACG(grp2,:)'); muafeats.ACG(grp2,2:end)';];
+f2p = [9,14,1]; % features to plot
+
+% theseACG = [flipud(muafeats.ACG(grp1,:)'); muafeats.ACG(grp1,2:end)';];
+theseACG = [flipud(muafeats.ACG(grp2,:)'); muafeats.ACG(grp2,2:end)';];
  
 theseBins = [-fliplr(muafeats.ACG_bins) muafeats.ACG_bins(2:end)];
 
-figure;
+figure('units','normalized','position',[0.1182 0.4361 0.6505 0.4259]);
 ax1 = subplot(1,2,1);
-scatter3(muafeats.features(grp1,9),muafeats.features(grp1,14),muafeats.features(grp1,6),'filled')
+scatter3(muafeats.features(grp1,f2p(1)),muafeats.features(grp1,f2p(2)),muafeats.features(grp1,f2p(3)),'filled')
 hold on
-scatter3(muafeats.features(grp2,9),muafeats.features(grp2,14),muafeats.features(grp2,6),14,[0.5 0.5 0.5],'filled')
-xlabel('Mean lag (sec)')
-ylabel('Mode ISI (sec)')
-zlabel('Peak/Trough (AU)')
+scatter3(muafeats.features(grp2,f2p(1)),muafeats.features(grp2,f2p(2)),muafeats.features(grp2,f2p(3)),14,[0.5 0.5 0.5],'filled')
+xlabel([muafeats.labels(f2p(1)) ' (sec)'])
+ylabel([muafeats.labels(f2p(2)) ' (sec)'])
+zlabel([muafeats.labels(f2p(3)) ' (sec)'])
 view([60,13.2])
+legend({'Bullseye','Simple'},'location','best')
 
 subplot(1,2,2)
-badplot(ax1,theseACG,theseBins,muaid(grp1),true)
-% badplot(ax1,theseACG,theseBins,muaid(grp2),true)
+% badplot(ax1,theseACG,theseBins,muaid(grp1),true)
+badplot(ax1,theseACG,theseBins,muaid(grp2),true)
 xlabel('Lag (sec)')
 ylabel('Conditional intensity (sp/sec)')
 xlim([-0.12 0.12])
@@ -279,19 +284,19 @@ xlim([-0.12 0.12])
 disp('Use datacursor to select cells')
 
 %% look at feature for single cell
-thisclu = 1756;
+thisclu = 279608;
 thislag = muafeats.features(muaid == thisclu,9);
 
 figure
 ax = subplot(2,1,1);
-bar(theseBins',theseACG(:,muaid(grp2) == thisclu),1,'facecolor',[0.3 0.3 0.3])
+bar(theseBins',theseACG(:,muaid(grp1) == thisclu),1,'facecolor',[0.3 0.3 0.3])
 xlim([-0.12 0.12])
 xlabel('Lag (sec)','fontsize',13)
 ylabel('Rate (sp/sec)','fontsize',13)
 box off
 
 mlind = find(theseBins >= thislag,1,'first');
-ymin = theseACG(mlind,muaid(grp2) == thisclu);
+ymin = theseACG(mlind,muaid(grp1) == thisclu);
 ymax = ymin + 5;
 
 % annotations are annoyingly in 'normalized' coordinates, so I need to
@@ -407,6 +412,16 @@ figure
 imagesc(snrf.XPos,-snrf.YPos,RF)
 q = abs(quantile(abs(RF(:)),0.98));
 caxis([-q q])
+
+%% x-corrs
+bs = 0.01; % bin size for psth
+vis_win = [-0.05 0.2]; % window for each kind of event
+
+ccg_bs = 0.01;
+ccg_win = 0.1; % +/- from 0, in sec
+min_spont = 60; % minimum interval to be considered 'spontaneous', in sec
+
+
 
 %%
 % [X,Y] = meshgrid(snrf.XPos,snrf.YPos);
@@ -536,8 +551,8 @@ for ii = 1:30
 end
 
 %%
-[~,inds] = sort(max(R2(nongausBest,2:3),[],2) - R2(nongausBest,1),'descend');
-% [~,inds] = sort(clu_fits.clusterInfo(nongausBest,3),'descend');
+% [~,inds] = sort(max(R2(nongausBest,2:3),[],2) - R2(nongausBest,1),'descend');
+[~,inds] = sort(clu_fits.clusterInfo(nongausBest,3),'descend');
 dougs = cfid(nongausBest);
 dougs = dougs(inds(1:50));
 dougs = reshape(reshape(dougs,10,5)',50,1);
@@ -551,9 +566,71 @@ for ii = 1:50
     hold on
     rfx = size(clu_fits.RF{cfid == dougs(ii)},2) + 0.5;
     rfy = size(clu_fits.RF{cfid == dougs(ii)},1) + 0.5;
+    xmid = size(clu_fits.RF{cfid == dougs(ii)},2)/2 + 0.5;
+    if clu_fits.clusterInfo(cfid == dougs(ii),3) > 0
+        plot([0.5 rfx rfx 0.5 0.5],[repelem([0.5 rfy],2) 0.5],'color','b')
+    else
+        plot([0.5 rfx rfx 0.5 0.5],[repelem([0.5 rfy],2) 0.5],'color','r')
+    end
     plot([0.5 rfx rfx 0.5 0.5],[repelem([0.5 rfy],2) 0.5],'-k')
     plot([rfx/2 rfx/2],[0.5 rfy],'-k')
 end
+
+%% location of training stimuli
+db = clu_fits.datasets;
+numdates = 7;
+
+bills = clu_fits.whichCell(bilatBest,3);
+[thesemice,inds,kays] = unique({db(bills).mouse_name});
+datalocs = {db(bills).dataServer};
+datalocs = datalocs(inds);
+cwexp = {db(bills).cwExp};
+cwexp = cwexp(inds);
+
+trenloc = cell(length(thesemice),numdates);
+testloc = cell(length(thesemice),1);
+for iMouse = 1:length(thesemice)
+    if ~strcmp(datalocs(iMouse),'old') % dont bother with data on zserver
+        
+        subjectDates = {db(contains({db(:).mouse_name},thesemice{iMouse})).date};
+        earliest_recording = subjectDates{1};
+        
+       
+        [~,~,~,~,blkDir] = expDirs(thesemice{iMouse},earliest_recording,[],datalocs{iMouse});
+        inds = strfind(blkDir,filesep);
+        pardir = blkDir(1:inds(end-1));
+        foo = dir(pardir);
+        alldates = {foo.name};
+        dis = find(contains(alldates,earliest_recording));
+        whichDates = rectify(dis-numdates:dis-1,1);
+        trenDates = alldates(whichDates);
+        for iDate = 1:length(trenDates)
+            [~, ~,hasBlock,pars] = dat.whichExpNums(thesemice{iMouse}, trenDates{iDate});
+            pars = [pars{hasBlock}];
+            x = [pars(:).distBetweenTargets];
+            y = [pars(:).targetAltitude];
+            trenloc{iMouse,iDate} = [x;y];
+        end
+        [~,~,~,pars] = dat.whichExpNums(thesemice{iMouse}, earliest_recording);
+        p = pars{cwexp{iMouse}};
+        x = [p(:).distBetweenTargets];
+        y = [p(:).targetAltitude];
+        testloc{iMouse} = [x;y];
+    end
+end
+
+medianTrainingPos = nan(length(bills),2);
+finalTrainingPos = nan(length(bills),2);
+firstTestPos = nan(length(bills),2);
+for iClu = 1:length(bills)
+    k = kays(iClu);
+    if ~strcmp(datalocs(k),'old') 
+        medianTrainingPos(iClu,:) = median([trenloc{k,:}],2);
+        finalTrainingPos(iClu,:) = median(trenloc{k,end},2);
+        firstTestPos(iClu,:) = testloc{iMouse};
+    end
+end
+
 
 %% PROFIT
 [X,Y] = meshgrid(snrf.XPos,snrf.YPos);
