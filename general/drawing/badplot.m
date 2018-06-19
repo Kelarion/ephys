@@ -1,6 +1,6 @@
-function plotlinked(theseData,varargin)
-% DOESN'T WORK YET! USE 'badplot' INSTEAD.
-%
+function badplot(theseData,X,t,labs,useCursor,varargin)
+% badplot(theseData,X[,t,labels,useCursor])
+% 
 % Plot a function (X) of the datapoint at the current mouse position. Works
 % for both continuous position and data cursor position.
 %
@@ -8,12 +8,9 @@ function plotlinked(theseData,varargin)
 % theseData, or a cell vector where each entry corresponds to a datapoint.
 
 supportedTypes = {'Scatter','Line'};
-
-[ax,X,t,labs,useCursor,plotArgs] = parseArgs(varargin);
-
-% if nargin<4, useCursor = false; end
-% if nargin<5, labs = []; end
-% labs = split(num2str(labs(:)'));
+if nargin<4, useCursor = false; end
+if nargin<5, labs = []; end
+labs = split(num2str(labs(:)'));
 
 % get initial settings
 if iscell(X)
@@ -22,10 +19,8 @@ else
     nPnts = size(X,2);
 end
 
-% Output of following block: targetAx, the axes with the scatter/line plot;
-% targetData, the plotted object in question; ax, the axes to plot onto
 switch whichClass(theseData)
-    case 'Axes' % more complicated case, they only gave the axes
+    case 'Axes' % more complicated, they only gave the axes
         targetAx = theseData;
         % see which data in target axis might be the right one
         dats = allchild(targetAx);
@@ -35,7 +30,7 @@ switch whichClass(theseData)
                 strjoin(supportedTypes,', ') ')'];
             error(msg)
         else
-            candidateData = []; % go through each scatter plot, see which one matches
+            candidateData = [];
             for ii = 1:length(scats)
                 lx = length(scats(ii).XData);
                 ly = length(scats(ii).YData);
@@ -49,7 +44,7 @@ switch whichClass(theseData)
                     strjoin(supportedTypes,', ') ') match data in ''X'''];
                 error(msg)
             elseif length(candidateData)>1
-                warning('Multiple data in axes match input, chosing random')
+                warning('Multiple data in axes match input, chosing one')
                 whichDat = randi(length(candidateData),1);
                 targetData = candidateData(whichDat);
             else 
@@ -89,8 +84,8 @@ else
     dataPlot = plot(ax,t,nan(1,size(X,1)));
 end
 
-fig = get(targetAx,'parent'); % listeners are added to figure
-tabulaRasa(fig); 
+fig = get(targetAx,'parent');
+tabulaRasa(fig);
 if useCursor
     set(fig,'units','normalized','WindowButtonMotionFcn',{@takeBreath,targetAx.Position})
     dcm_obj = datacursormode(fig);
@@ -119,7 +114,7 @@ end
             
             dd = [targDat - cp(1,1:size(targDat,2))]; % assume we want the point closest to the screen
             dist2pnt = sqrt(diag(dd*dd'));
-            [~,ind] = min(dist2pnt); % will this always be unique??? (no)
+            [~,ind] = min(dist2pnt); % will this always be unique???
             if isa(datPlt,'matlab.graphics.primitive.Image')
                 datPlt.CData = givenDat{ind};
             else
@@ -141,7 +136,7 @@ end
             
             dd = [targDat - cp(1,1:size(targDat,2))]; % assume we want the point closest to the screen
             dist2pnt = sqrt(diag(dd*dd'));
-            [~,ind] = min(dist2pnt); % will this always be unique??? (no)
+            [~,ind] = min(dist2pnt); % will this always be unique???
             if isa(datPlt,'matlab.graphics.primitive.Image')
                 datPlt.CData = givenDat{ind};
             else
@@ -186,11 +181,11 @@ function type = whichClass(thisObj)
 % native function for this? I don't think so, and this is not super robust
 % at all so do replace it if you find one later.
 
-% maybe try isa('matlab.graphics.chart.primitive.Scatter')
+% use isa('matlab.graphics.chart.primitive.Scatter')
 
 type = cell(1,length(thisObj));
 for ii = 1:length(thisObj)
-    try % silly way, get a nonsense property and see what the error message says
+    try
         get(thisObj(ii),'fakeproperty');
     catch err
         [~,tmp1] = regexp(err.message,'property on the ');
@@ -204,10 +199,9 @@ if length(type) == 1, type = type{:}; end
 end
 
 function tabulaRasa(f)
-% delete all previous listeners when calling master function
 
 try
-    predecessors = f.AutoListeners__; % some great undocumented MatLab
+    predecessors = f.AutoListeners__;
     for ii = 1:length(predecessors)
         delete(predecessors{ii});
     end
@@ -215,61 +209,3 @@ catch
 end
 
 end
-
-%% arg parser
-function [ax,X,t,labs,useCursor,plotArgs] = parseArgs(args)
-% [ax,X,t,labs,useCursor,plotArgs] = parseArgs(args)
-%
-% Implements MatLab's shitty implicit argument passing. The first string
-% input marks the beginning of plotting arguments; all main arguments must
-% come before the plotArgs.
-%
-% How outputs are determined:
-%   > ax: First 'Axes' object in args, default empty.
-%   > X: First  argument after ax, no default.
-%   > t: Vector following X, default empty.
-%   > labs: Cell array of strings, default empty. 
-%   > useCursor: Logical input, default false.
-
-argTypes = lower(cellfun(@class,args,'UniformOutput',false));
-beginPlotArgs = find(strcmp(argTypes,'char'),1,'first');
-if isempty(beginPlotArgs), beginPlotArgs = length(argTypes); end
-plotArgs = args(beginPlotArgs+1:end);
-mainArgs = args(1:beginPlotArgs);
-mainArgTypes = argTypes(1:beginPlotArgs);
-
-isax = contains(mainArgTypes,'axes');
-if nnz(isax) == 1 % get axes
-    ax = args{isax};
-    axInd = find(isax);
-elseif any(isax)
-    error('Too many arguments of type ''Axes'', please give only one')
-else
-    ax = [];
-    axInd = 0;
-end
-
-X = mainArgs{axInd+1};
-
-isdubs = contains(mainArgTypes,'double') | contains(mainArgTypes,'cell');
-if nnz(isdubs) == 1 % get data
-    X = args{isdubs};
-elseif any(isdubs)
-    
-else
-    error('No numeric arguments given, ')
-end
-
-remainingargs = mainArgs(axInd+2:end);
-for iArg = 1:length(remainingargs)
-    if iscell(remainingargs(iArg))
-        
-    elseif islogical(remainingargs(iArg))
-        
-    end
-end
-
-end
-
-
-
