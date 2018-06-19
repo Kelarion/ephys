@@ -20,7 +20,7 @@ Probably the entire [spikes repository](https://github.com/cortex-lab/spikes "to
 In addition, all of the code for loading data assumes the standard (as of June 2018) cortex lab heirarchy for data storage.
 
 ## Hints
-If you haven't, check out [this handy guide](https://github.com/cortex-lab/neuropixels/wiki/Other_analysis_methods) for looking through Neuropixels data.
+If you haven't yet, check out [this handy guide](https://github.com/cortex-lab/neuropixels/wiki/Other_analysis_methods) for looking through Neuropixels data.
 
 On top of that, here are some functions which were useful when exploring my data, in descending order of utility:
 
