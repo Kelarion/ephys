@@ -3,16 +3,16 @@
 Scripts and helper functions for my electrophysiology data analysis. Not guaranteed to work on your machine, or at all.
 
 ## Organization
-Things are in general organized according to their use, e.g. 'oscillations' for things which deal with LFP oscillations, or 'RFs' for receptive field mapping, etc. Note that not all code is guaranteed to be functional or fully-formed, as some (several) were aborted early on. 
+Things are in general organized according to their use, e.g. 'oscillations' for things which deal with LFP oscillations, or 'RFs' for receptive field mapping, etc. Note that not all code is functional or fully-formed, as some (several) were aborted early on. Anything general purpose.
 
 ## Dependencies
 Probably the entire [spikes repository](https://github.com/cortex-lab/spikes "to it's GitHub page"), or at least very many functions therein. In addition, some parts require these:
 
-+ Statistics and Machine Learning Toolbox
-+ [Chronux](http://chronux.org/) (only for e-phys features)
++ Statistics and Machine Learning toolbox
 + [npy-matlab](https://github.com/kwikteam/npy-matlab) (mainly `readNPY` and `writeNPY`)
 + [Rigbox](https://github.com/cortex-lab/Rigbox.git) (specifically +dat and `loadVar`)
 + [alyx-matlab](https://github.com/cortex-lab/alyx-matlab.git) (specifically +alf)
++ [Chronux](http://chronux.org/) (only for e-phys features)
 + Optimization toolbox (only for RF fitting)
 + Signal Processing toolbox (only for cerebellum code)
 + [Circular Statistics toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/10676-circular-statistics-toolbox--directional-statistics-) (only for cerebellum code)
@@ -33,4 +33,11 @@ On top of that, here are some functions which were useful when exploring my data
 + **samelims** A script which changes the current axis limits to be the same for x and y; different from the command-line `axis square`, which only makes the scales the same. 
 
 + **viewTogether** Plot two signals on upper and lower subplots, with linked x axes.
+
++ **viewRaw_bin.py** A super wobbly app for viewing raw neuropixels data in spikeGLX format. Made it before I realized there was a way to do this with phy. It's run on the commond line, by `cd`ing to the ephys directory and doing either:
+...`python viewRaw_bin.py`..
+...which will let you navigate to the *.ap.bin file, or..
+...`python viewRaw_bin.py Path\To\Your\File\foo.imec.ap.bin`..
+...which loads it directly..
+
 
