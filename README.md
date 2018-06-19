@@ -35,9 +35,9 @@ On top of that, here are some functions which were useful when exploring my data
 + **viewTogether** Plot two signals on upper and lower subplots, with linked x axes.
 
 + **viewRaw_bin.py** A super wobbly app for viewing raw neuropixels data in spikeGLX format. Made it before I realized there was a way to do this with phy. It's run on the commond line from the ephys directory by doing either:<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`python viewRaw_bin.py`<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;which will let you navigate to the *.ap.bin file, or<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`python viewRaw_bin.py Path\To\Your\File\foo.imec.ap.bin`<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;which loads it directly<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`python viewRaw_bin.py`<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;which will let you navigate to the *.ap.bin file, or<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`python viewRaw_bin.py Path\To\Your\File\foo.imec.ap.bin`<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbspwhich loads it directly. From there nagivate with A/D for back/forth in time, and up/down arrow keys for scale.<br/>
 
 
