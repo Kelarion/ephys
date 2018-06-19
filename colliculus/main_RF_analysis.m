@@ -1,3 +1,14 @@
+% These are a series of code blocks which can make most of the figures
+% found in the thesis writeup. The first block loads the results of RF
+% fitting and of the e-phys features, the next establishes which 
+% neurons are common to both, and decides on which neurons are
+% significantly better-explained by unusual RF structures.
+%
+% Subsequent blocks are for making figures, or looking interactively
+% through the data. They don't always need to be done sequentially, but
+% some definitely do.
+
+%% Load data
 muafeats = loadVar('C:\DATA\Spikes\SC_popstructs\MUA_ephys_features.mat','feats');
 allfeats = loadVar('C:\DATA\Spikes\SC_popstructs\all_ephys_features.mat','feats');
 clu_fits = loadVar('C:\DATA\Spikes\SC_popstructs\all_RF_fits.mat','clu_fits');
@@ -20,7 +31,7 @@ cfid = wc2id(tmp_cfwc);
 muaid = wc2id(tmp_muawc);
 
 %% parameters
-nongaus_thresh = 0.005;
+nongaus_thresh = 0.005; % R^2 improvement thresholds
 bilat_thresh = 0.013;
 goodFit_thresh = 0.03;
 sigma_thresh = 7; % minimum z-score of RF peak
@@ -95,7 +106,7 @@ grplabs = {'Single gaussian','Center-suppressive'};
 % grps = [sens mot othr];
 % grps = [gausBest nongausBest];
 grps = [unilatBest bilatBest] ;
-grps = grps(ismember(cfid,muaid),:);
+grps = grps(ismember(cfid,muaid),:); % need to use this if we're using unilatBest or gausBest
 % quantity = (R2(:,4)- max(R2(:,1:3),[],2));
 % quantity = (max(R2(:,2:3),[],2) - R2(:,1));
 % quantity = max(R2(:,:),[],2) - clu_fits.rfR2;
@@ -377,7 +388,7 @@ for iClu = 1:sum(chosenCells)
     fooSts(iClu) = sts;
 end
 
-%%
+%% load RF and spikes for a single neuron
 thisclu = 16932;
 foo = id2wc(thisclu);
 k = foo(3); t = foo(2);
@@ -413,17 +424,7 @@ imagesc(snrf.XPos,-snrf.YPos,RF)
 q = abs(quantile(abs(RF(:)),0.98));
 caxis([-q q])
 
-%% x-corrs
-bs = 0.01; % bin size for psth
-vis_win = [-0.05 0.2]; % window for each kind of event
-
-ccg_bs = 0.01;
-ccg_win = 0.1; % +/- from 0, in sec
-min_spont = 60; % minimum interval to be considered 'spontaneous', in sec
-
-
-
-%%
+%% not sure what this is 
 % [X,Y] = meshgrid(snrf.XPos,snrf.YPos);
 dis = clu_fits.bestParams{cfid == thisclu}{1};
 mu = cntrs(cfid == thisclu,:);

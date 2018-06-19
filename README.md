@@ -6,9 +6,18 @@ Scripts and helper functions for my electrophysiology data analysis. Not guarant
 Things are in general organized according to their use, e.g. 'oscillations' for things which deal with LFP oscillations, or 'RFs' for receptive field mapping, etc. Note that not all code is guaranteed to be functional or fully-formed, as some (several) were aborted early on. 
 
 ## Dependencies
-Probably the entire [spikes repository](https://github.com/cortex-lab/spikes "to it's GitHub page"), or at least very many functions therein. In addition, I require these:
+Probably the entire [spikes repository](https://github.com/cortex-lab/spikes "to it's GitHub page"), or at least very many functions therein. In addition, some parts require these:
 
-+ [List with links goes here](http://www.google.com)
++ Statistics and Machine Learning Toolbox
++ [Chronux](http://chronux.org/)
++ [npy-matlab](https://github.com/kwikteam/npy-matlab) (mainly `readNPY` and `writeNPY`)
++ [Rigbox](https://github.com/cortex-lab/Rigbox.git) (specifically +dat and `loadVar`)
++ [alyx-matlab](https://github.com/cortex-lab/alyx-matlab.git) (specifically +alf)
++ Optimization toolbox (only for RF fitting)
++ Signal Processing toolbox (only for cerebellum code)
++ [Circular Statistics toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/10676-circular-statistics-toolbox--directional-statistics-) (only for cerebellum code)
+
+In addition, all of the code for loading data and such .
 
 ## Hints
 Some functions in this repository which were useful when exploring the data, in descending order of utility:
