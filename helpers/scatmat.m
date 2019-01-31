@@ -6,11 +6,13 @@ function Ax = scatmat(X,ptype,varargin)
 % 
 % Inputs: 
 %  - X is [nObs,nVar]
+%
 % Optional:
 %  - ptype is either 'scatter' (default) or 'density'
 %  - Specify axes labels as (X,__,'labels', {lab1,lab2,...})
 %  - Specify the number of histogram/density bins as (X,__,'nbin',val)
 %  - (for scatter plot) Aditional arguments for the 'scatter' function
+%
 % Output (optional):
 %  - Ax is [nVar,nVar] axes
 
@@ -26,7 +28,7 @@ switch ptype
         j = 1;
         for row = 1:nVar
             for col = 1:nVar
-                Ax(row,col) = subtightplot(nVar,nVar,j,[0.005 0.005]);
+                Ax(row,col) = subtightplot(nVar,nVar,j,[0.005 0.005],0.1,0.05);
                 varXlim = [min(X(:,col)) max(X(:,col))]; % set lims for all plots
                 varYlim = [min(X(:,row)) max(X(:,row))];
                 rowCntr = linspace(varXlim(1),varXlim(2),nbin);
@@ -52,7 +54,7 @@ switch ptype
         j = 1;
         for row = 1:nVar
             for col = 1:nVar
-                Ax(row,col) = subtightplot(nVar,nVar,j,[0.005 0.005]);
+                Ax(row,col) = subtightplot(nVar,nVar,j,[0.005 0.005],0.1,0.05);
                 varXlim = [min(X(:,col)) max(X(:,col))];
                 varYlim = [min(X(:,row)) max(X(:,row))];
                 rowCntr = linspace(varXlim(1),varXlim(2),nbin);
@@ -70,7 +72,7 @@ switch ptype
                     colormap gray;
                     set(Ax(row,col),'Ydir','normal')
                     q = abs(quantile(n(:),0.85));
-                    caxis([0 q])
+                    caxis([0 q]);
                     
                     if row<nVar, Ax(row,col).XTick = []; end
                     if col>1, Ax(row,col).YTick = []; end
@@ -144,6 +146,5 @@ lims = [min(data) max(data)];
 [~,movelim] = max(abs(cntr-fliplr(lims))); % flipped for ease of indexing
 d = 2*cntr - (sum(lims));
 lims(movelim) =  lims(movelim) + d;
-
 
 end

@@ -10,7 +10,7 @@ if nargin<6
     computeWin = [-0.05 0.2];
 end
 nDepthBins = 8;
-dsFactor = 1;
+dsFactor = 1; % downsample factor
 
 lfpFs = 2500/dsFactor;
 nChLFP = size(lfpFile.Data.x,1);

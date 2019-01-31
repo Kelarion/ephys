@@ -14,8 +14,10 @@ function [scTop, scBottom] = wheresCortex(lfpName,algo,algoInfo)
 %       dorsal channel with a strong visual response as the surface of the
 %       SC. If you have the sparse noise info, this is much faster.
 %   -algoInfo: Depends on algo:
-%       > If 'corrs', specify when (seconds) to compute correlations 
-%       > If 'snrf', provide the path to 'sparse_noise_RFs.mat' file 
+%       > If 'corrs', specify [start, end] times, in seconds
+%       > If 'snrf', a cell of {timeCourses, channels} with the time
+%       courses and channel indices of all the LFP responses (i.e. first
+%       and last output of the snrfLFP function).
 %
 % Note: this is only guaranteed to work with the specific data pipeline
 % used for my SC project in the cortex lab.
@@ -48,10 +50,12 @@ switch algo
         rows = findDiagBlocks(cormat,3,'svd'); % finds row of the block diagonals
         scTop = max(rows);
     case 'snrf' % best option if you can use it
-        tmp = load(algoInfo);
-        snrf = tmp.snrf;
-        timeCourse = snrf.lfp_timecourse;
-        tcChans = snrf.computed_channels;
+%         tmp = load(algoInfo); % this requires the snrf struct 
+%         snrf = tmp.snrf;      % which is made by getRFs.m
+%         timeCourse = snrf.lfp_timecourse;
+%         tcChans = snrf.computed_channels;
+        timeCourse = algoInfo{1}; % the first output of snrfLFP
+        tcChans = algoInfo{2}; % last output of snrfLFP
         [m, ind] = max(-timeCourse,[],2);
         peakTime = ind(m == max(m));
         depthResponse = zscore(timeCourse(:,peakTime));
