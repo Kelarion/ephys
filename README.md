@@ -1,6 +1,6 @@
 # Matteo's electrophysiology
 
-Scripts and helper functions for my electrophysiology data analysis. Not guaranteed to work on your machine, or at all.
+Scripts and helper functions for my electrophysiology data analysis. 
 
 ## Organization
 Things are in general organized according to their use, e.g. 'oscillations' for things which deal with LFP oscillations, or 'RFs' for receptive field mapping, etc. Note that not all code is functional or fully-formed, as some (several) were aborted early on. Anything general purpose.
